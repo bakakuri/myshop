@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ge.myshop.app.data.repository.ChatRepository
-import ge.myshop.app.domain.model.Conversation
 import ge.myshop.app.domain.model.Message
+import ge.myshop.app.domain.model.OrderRef
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,9 +19,11 @@ import javax.inject.Inject
 data class ChatDetailUiState(
     val isLoading: Boolean = true,
     val messages: List<Message> = emptyList(),
-    val orderNumber: String? = null,
+    val order: OrderRef? = null,
+    val draft: String = "",
     val isSending: Boolean = false,
     val error: String? = null,
+    val sendError: String? = null,
 )
 
 @HiltViewModel
@@ -29,81 +34,60 @@ class ChatDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(ChatDetailUiState())
     val uiState: StateFlow<ChatDetailUiState> = _uiState.asStateFlow()
 
-    private var currentConversationId: String? = null
+    private var conversationId: String? = null
 
-    fun loadConversation(conversationId: String) {
-        if (currentConversationId == conversationId) return
-        currentConversationId = conversationId
-
+    fun loadConversation(id: String, force: Boolean = false) {
+        if (conversationId == id && !force) return
+        conversationId = id
+        _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-
-            chatRepository.getMessages(conversationId).fold(
-                onSuccess = { messages ->
-                    _uiState.update { it.copy(isLoading = false, messages = messages) }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
-                },
-            )
-
-            // Mark as read
-            chatRepository.markConversationRead(conversationId)
-
-            // Subscribe to real-time new messages
-            subscribeToMessages(conversationId)
+            launch { chatRepository.getConversation(id).onSuccess { c -> _uiState.update { it.copy(order = c.order) } } }
+            chatRepository.getMessages(id)
+                .onSuccess { msgs -> _uiState.update { it.copy(isLoading = false, messages = msgs.filterNot { m -> m.isInternalNote }) } }
+                .onFailure { _uiState.update { it.copy(isLoading = false, error = "შეტყობინებების ჩატვირთვა ვერ მოხერხდა.") } }
+            chatRepository.markConversationRead(id)
+            subscribe(id)
         }
     }
 
-    private fun subscribeToMessages(conversationId: String) {
+    private fun subscribe(id: String) {
         viewModelScope.launch {
-            try {
-                chatRepository.subscribeToMessages(conversationId).collect { newMessage ->
-                    _uiState.update { state ->
-                        // Avoid duplicates
-                        if (state.messages.any { it.id == newMessage.id }) {
-                            state
-                        } else {
-                            state.copy(messages = state.messages + newMessage)
-                        }
-                    }
-                    // Mark read on new incoming message
-                    chatRepository.markConversationRead(conversationId)
+            runCatching {
+                chatRepository.subscribeToMessages(id).collect { incoming ->
+                    _uiState.update { s -> if (s.messages.any { it.id == incoming.id }) s else s.copy(messages = s.messages + incoming) }
+                    chatRepository.markConversationRead(id)
                 }
-            } catch (_: Exception) {
-                // Realtime disconnect is non-fatal — user can still send/receive manually
-            }
+            } // realtime drop is non-fatal: messages still load on reopen
         }
     }
 
-    fun sendMessage(content: String) {
-        val conversationId = currentConversationId ?: return
+    fun updateDraft(text: String) = _uiState.update { it.copy(draft = text.take(2000), sendError = null) }
 
+    fun send() {
+        val id = conversationId ?: return
+        val text = _uiState.value.draft.trim()
+        if (text.isEmpty() || _uiState.value.isSending) return
+        _uiState.update { it.copy(isSending = true, sendError = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSending = true) }
-
-            chatRepository.sendMessage(conversationId, content).fold(
-                onSuccess = { message ->
-                    _uiState.update { state ->
-                        state.copy(
+            chatRepository.sendMessage(id, text)
+                .onSuccess { msg ->
+                    _uiState.update { s ->
+                        s.copy(
                             isSending = false,
-                            messages = if (state.messages.any { it.id == message.id }) {
-                                state.messages
-                            } else {
-                                state.messages + message
-                            },
+                            draft = "",
+                            messages = if (s.messages.any { it.id == msg.id }) s.messages else s.messages + msg,
                         )
                     }
-                },
-                onFailure = { e ->
-                    _uiState.update { it.copy(isSending = false) }
-                },
-            )
+                }
+                .onFailure { _uiState.update { it.copy(isSending = false, sendError = "შეტყობინება ვერ გაიგზავნა") } }
         }
     }
+
+    fun consumeSendError() = _uiState.update { it.copy(sendError = null) }
 
     override fun onCleared() {
         super.onCleared()
-        viewModelScope.launch { chatRepository.unsubscribe() }
+        // viewModelScope is already cancelled here — use a short-lived scope to close the channel
+        CoroutineScope(Dispatchers.IO + NonCancellable).launch { runCatching { chatRepository.unsubscribe() } }
     }
 }

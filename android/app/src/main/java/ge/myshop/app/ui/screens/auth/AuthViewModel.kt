@@ -14,6 +14,8 @@ import javax.inject.Inject
 data class AuthUiState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
+    /** Sign-up succeeded but Supabase requires the e-mail link to be confirmed first. */
+    val confirmationSentTo: String? = null,
     val error: String? = null,
 )
 
@@ -33,57 +35,44 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             authRepository.signInWithEmail(email.trim(), password)
-                .fold(
-                    onSuccess = { _uiState.update { it.copy(isLoading = false, isLoggedIn = true) } },
-                    onFailure = { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "შეცდომა შესვლისას") } },
-                )
+                .onSuccess { _uiState.update { it.copy(isLoading = false, isLoggedIn = true) } }
+                .onFailure { e -> _uiState.update { it.copy(isLoading = false, error = friendly(e)) } }
         }
     }
 
     fun signUp(email: String, password: String, name: String) {
-        if (email.isBlank() || password.isBlank() || name.isBlank()) {
-            _uiState.update { it.copy(error = "ყველა ველი სავალდებულოა") }
-            return
-        }
-        if (password.length < 6) {
-            _uiState.update { it.copy(error = "პაროლი მინიმუმ 6 სიმბოლო უნდა იყოს") }
-            return
+        when {
+            name.isBlank() || email.isBlank() || password.isBlank() -> { _uiState.update { it.copy(error = "ყველა ველი სავალდებულოა") }; return }
+            !email.trim().matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) -> { _uiState.update { it.copy(error = "ელ-ფოსტა არასწორია") }; return }
+            password.length < 8 -> { _uiState.update { it.copy(error = "პაროლი მინიმუმ 8 სიმბოლო უნდა იყოს") }; return }
         }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             authRepository.signUpWithEmail(email.trim(), password, name.trim())
-                .fold(
-                    onSuccess = { _uiState.update { it.copy(isLoading = false, isLoggedIn = true) } },
-                    onFailure = { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "შეცდომა რეგისტრაციისას") } },
-                )
-        }
-    }
-
-    fun sendOtp(phone: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.sendOtp(phone)
-                .fold(
-                    onSuccess = { _uiState.update { it.copy(isLoading = false) } },
-                    onFailure = { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "კოდის გაგზავნა ვერ მოხდა") } },
-                )
-        }
-    }
-
-    fun verifyOtp(phone: String, token: String) {
-        if (token.isBlank()) {
-            _uiState.update { it.copy(error = "კოდი სავალდებულოა") }
-            return
-        }
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            authRepository.verifyOtp(phone, token)
-                .fold(
-                    onSuccess = { _uiState.update { it.copy(isLoading = false, isLoggedIn = true) } },
-                    onFailure = { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "კოდი არასწორია") } },
-                )
+                .onSuccess {
+                    // With e-mail confirmation on, Supabase creates the user but no session yet
+                    val hasSession = authRepository.currentUser != null
+                    _uiState.update {
+                        it.copy(isLoading = false, isLoggedIn = hasSession, confirmationSentTo = if (hasSession) null else email.trim())
+                    }
+                }
+                .onFailure { e -> _uiState.update { it.copy(isLoading = false, error = friendly(e)) } }
         }
     }
 
     fun clearError() = _uiState.update { it.copy(error = null) }
+
+    /** Supabase returns English technical messages; show Georgian ones. */
+    private fun friendly(e: Throwable): String {
+        val m = (e.message ?: "").lowercase()
+        return when {
+            "invalid login" in m || "invalid credentials" in m -> "ელ-ფოსტა ან პაროლი არასწორია"
+            "not confirmed" in m -> "ჯერ დაადასტურე ელ-ფოსტა — ბმული მეილზე გამოგიგზავნეთ"
+            "already registered" in m || "already exists" in m -> "ეს ელ-ფოსტა უკვე რეგისტრირებულია — სცადე შესვლა"
+            "password" in m && ("weak" in m || "least" in m) -> "პაროლი ძალიან სუსტია — გამოიყენე მინიმუმ 8 სიმბოლო"
+            "rate limit" in m || "too many" in m -> "ძალიან ბევრი მცდელობა — სცადე რამდენიმე წუთში"
+            "network" in m || "timeout" in m || "unable to resolve" in m || "failed to connect" in m -> "კავშირის შეცდომა — შეამოწმე ინტერნეტი"
+            else -> "მოქმედება ვერ შესრულდა — სცადე ხელახლა"
+        }
+    }
 }

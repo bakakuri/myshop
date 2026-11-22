@@ -21,7 +21,7 @@ class ProductRepository @Inject constructor(
         return runCatching {
             supabase.postgrest
                 .from("categories")
-                .select(Columns.ALL) {
+                .select(Columns.raw("*, products(count)")) {
                     filter {
                         eq("is_visible", true)
                         if (parentId == null) {
@@ -40,7 +40,7 @@ class ProductRepository @Inject constructor(
         return runCatching {
             supabase.postgrest
                 .from("categories")
-                .select(Columns.ALL) { filter { eq("id", id) } }
+                .select(Columns.raw("*, products(count)")) { filter { eq("id", id) } }
                 .decodeSingle<Category>()
         }
     }

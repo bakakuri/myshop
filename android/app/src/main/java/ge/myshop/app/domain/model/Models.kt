@@ -94,7 +94,14 @@ data class Category(
     @SerialName("sort_order") val sortOrder: Int = 0,
     @SerialName("is_visible") val isActive: Boolean = true,
     val children: List<Category> = emptyList(), // populated client-side
-)
+    // Joined: products(count) — visible (published) products only, via RLS
+    val products: List<CountRow> = emptyList(),
+) {
+    val productCount: Long get() = products.firstOrNull()?.count ?: 0
+}
+
+@Serializable
+data class CountRow(val count: Long = 0)
 
 // ── Product ───────────────────────────────────────────────────
 
@@ -386,8 +393,11 @@ data class MessageAttachment(
 
 @Serializable
 data class OrderRef(
+    val id: String? = null,
     @SerialName("order_number") val orderNumber: String? = null,
     val status: OrderStatus? = null,
+    val total: Double? = null,
+    @SerialName("created_at") val createdAt: String? = null,
 )
 
 @Serializable

@@ -1,8 +1,10 @@
 package ge.myshop.app.ui.screens.cart
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,136 +16,223 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.ShoppingCartCheckout
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.rounded.DeleteOutline
+import androidx.compose.material.icons.rounded.LocalOffer
+import androidx.compose.material.icons.rounded.LocalShipping
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.VerifiedUser
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import ge.myshop.app.R
 import ge.myshop.app.domain.model.CartItemSummary
+import ge.myshop.app.ui.common.LocalApp
+import ge.myshop.app.ui.components.DiscountPill
 import ge.myshop.app.ui.components.EmptyState
-import ge.myshop.app.ui.components.MyShopButton
-import ge.myshop.app.ui.components.PriceDisplay
-import ge.myshop.app.ui.components.ScreenHeader
-import ge.myshop.app.ui.theme.PrimaryPurple
-import ge.myshop.app.ui.theme.ProductImageShape
+import ge.myshop.app.ui.components.ErrorState
+import ge.myshop.app.ui.components.HeaderAction
+import ge.myshop.app.ui.components.InfoStrip
+import ge.myshop.app.ui.components.LoadingState
+import ge.myshop.app.ui.components.MenuSheet
+import ge.myshop.app.ui.components.MsCard
+import ge.myshop.app.ui.components.MsIconDisc
+import ge.myshop.app.ui.components.MsImage
+import ge.myshop.app.ui.components.MsOutlinedButton
+import ge.myshop.app.ui.components.MsPrimaryButton
+import ge.myshop.app.ui.components.MyShopHeader
+import ge.myshop.app.ui.components.QuantityStepper
+import ge.myshop.app.ui.components.StockLabel
+import ge.myshop.app.ui.components.formatGel
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsColor
 
 @Composable
 fun CartScreen(
-    onCheckoutClick: () -> Unit,
-    onProductClick: (String) -> Unit,
-    onNavigateBack: () -> Unit,
+    onNavigateToCheckout: () -> Unit,
+    onNavigateToProductDetail: (String) -> Unit,
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
+    onNavigateToRoute: (String) -> Unit = {},
     viewModel: CartViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val app = LocalApp.current
+    var showMenu by remember { mutableStateOf(false) }
+    var confirmClear by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = { ScreenHeader("კალათა", onBack = onNavigateBack) },
-        bottomBar = {
-            if (uiState.cartSummary != null && uiState.cartSummary!!.items.isNotEmpty()) {
-                CartBottomBar(
-                    subtotal = uiState.cartSummary!!.subtotal,
-                    itemCount = uiState.cartSummary!!.itemCount,
-                    onCheckout = onCheckoutClick,
-                )
-            }
-        },
-    ) { padding ->
-        val summary = uiState.cartSummary
-        if (summary == null || summary.items.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+    LaunchedEffect(Unit) { viewModel.loadCart() }
+    LaunchedEffect(state.cartSummary?.itemCount) { app.refreshBadges() }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            MyShopHeader(
+                leading = HeaderAction(Icons.Rounded.Menu, "მენიუ", filled = false) { showMenu = true },
+                actions = listOf(HeaderAction(Icons.Rounded.Notifications, "შეტყობინებები", badge = app.badges.notifications, filled = false, onClick = onNavigateToNotifications)),
+                bottom = {
+                    Row(Modifier.fillMaxWidth().padding(start = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("კალათა", style = msText(32.sp, FontWeight.ExtraBold, Color.White))
+                            Text("შეამოწმე პროდუქტები შეკვეთამდე", style = msText(13.sp, FontWeight.Medium, Color.White.copy(alpha = 0.92f)))
+                        }
+                        Image(painterResource(R.drawable.ill_cart_bags), null, Modifier.size(width = 130.dp, height = 102.dp))
+                    }
+                },
+            )
+        }
+
+        when {
+            !state.isLoggedIn -> item {
                 EmptyState(
-                    icon = "🛒",
-                    title = "კალათა ცარიელია",
-                    subtitle = "დაამატეთ პროდუქტი კატალოგიდან",
+                    Icons.Rounded.Lock,
+                    "შედი ანგარიშზე",
+                    subtitle = "კალათის სანახავად და შეკვეთისთვის საჭიროა ანგარიში",
+                    actionText = "შესვლა",
+                    onAction = app.openLogin,
                 )
             }
-        } else {
-            LazyColumn(
-                contentPadding = padding,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            ) {
-                item { Spacer(Modifier.height(8.dp)) }
-                items(summary.items, key = { it.cartItemId }) { item ->
+            state.isLoading -> item { LoadingState() }
+            state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::loadCart) }
+            state.items.isEmpty() -> item {
+                EmptyState(
+                    Icons.Rounded.ShoppingCart,
+                    "კალათა ცარიელია",
+                    subtitle = "დაამატე პროდუქტები და აქ გამოჩნდება",
+                    actionText = "შოპინგის დაწყება",
+                    onAction = onNavigateToHome,
+                )
+            }
+            else -> {
+                items(state.items, key = { it.cartItemId }) { item ->
                     CartItemCard(
                         item = item,
-                        onRemove = { viewModel.removeItem(item.cartItemId) },
-                        onQuantityChange = { newQty -> viewModel.updateQuantity(item.cartItemId, item.productId, item.variantId, newQty) },
+                        onOpen = { onNavigateToProductDetail(item.productId) },
+                        onRemove = { viewModel.removeItem(item) },
+                        onQuantity = { viewModel.changeQuantity(item, it) },
+                        modifier = Modifier.padding(horizontal = 14.dp),
                     )
                 }
-                item { Spacer(Modifier.height(100.dp)) }
+                item {
+                    Column(Modifier.padding(horizontal = 14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SummaryCard(state.cartSummary?.subtotal ?: 0.0, state.cartSummary?.itemCount ?: 0)
+                        InfoStrip(
+                            listOf(
+                                Icons.Rounded.LocalShipping to "მიწოდება: ${app.store.deliveryShort}",
+                                Icons.Rounded.VerifiedUser to "უსაფრთხო შეკვეთა",
+                            ),
+                        )
+                        if (state.hasUnavailable) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Rounded.Warning, null, tint = MsColor.Red, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("ზოგი პროდუქტი აღარ არის მარაგში — წაშალე გასაგრძელებლად", style = msText(13.sp, FontWeight.SemiBold, MsColor.Red))
+                            }
+                        }
+                        MsPrimaryButton(
+                            text = "შეკვეთის მოთხოვნის გაგზავნა",
+                            onClick = onNavigateToCheckout,
+                            icon = Icons.AutoMirrored.Rounded.Send,
+                            trailingIcon = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                            enabled = !state.hasUnavailable,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        MsOutlinedButton(
+                            text = "კალათის გასუფთავება",
+                            onClick = { confirmClear = true },
+                            icon = Icons.Rounded.DeleteOutline,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             }
         }
+    }
+
+    if (showMenu) MenuSheet(onDismiss = { showMenu = false }, onNavigate = onNavigateToRoute)
+    if (confirmClear) {
+        AlertDialog(
+            onDismissRequest = { confirmClear = false },
+            containerColor = Color.White,
+            title = { Text("კალათის გასუფთავება", style = msText(19.sp, FontWeight.ExtraBold)) },
+            text = { Text("ნამდვილად გსურს ყველა პროდუქტის წაშლა კალათიდან?", style = msText(14.sp, FontWeight.Medium, MsColor.InkSoft)) },
+            confirmButton = {
+                TextButton(onClick = { confirmClear = false; viewModel.clearCart() }) {
+                    Text("გასუფთავება", style = msText(15.sp, FontWeight.Bold, MsColor.Red))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmClear = false }) { Text("გაუქმება", style = msText(15.sp, FontWeight.Bold, MsColor.Purple600)) }
+            },
+        )
     }
 }
 
 @Composable
 private fun CartItemCard(
     item: CartItemSummary,
+    onOpen: () -> Unit,
     onRemove: () -> Unit,
-    onQuantityChange: (Int) -> Unit,
+    onQuantity: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            AsyncImage(
-                model = item.imageUrl,
-                contentDescription = item.productNameKa,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(72.dp).clip(ProductImageShape),
-            )
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(item.productNameKa, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                if (!item.variantNameKa.isNullOrBlank()) {
-                    Text(item.variantNameKa!!, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+    MsCard(modifier.fillMaxWidth(), onClick = onOpen) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            MsImage(item.imageUrl, item.productNameKa, Modifier.size(96.dp), fallbackIcon = Icons.Rounded.ShoppingCart)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Column(Modifier.weight(1f)) {
+                        Text(item.productNameKa, style = msText(16.sp, FontWeight.ExtraBold), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        item.variantNameKa?.let { Text(it, style = msText(12.5.sp, FontWeight.Medium, MsColor.InkSoft), maxLines = 1) }
+                    }
+                    MsIconDisc(Icons.Rounded.DeleteOutline, "წაშლა", onRemove, size = 34.dp, background = MsColor.Purple100)
                 }
-                PriceDisplay(price = item.unitPrice, modifier = Modifier)
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Filled.Delete, contentDescription = "წაშლა", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(formatGel(item.unitPrice), style = msText(18.sp, FontWeight.ExtraBold, MsColor.Purple800))
+                    item.previousPrice?.takeIf { it > item.unitPrice }?.let { old ->
+                        Text(
+                            formatGel(old),
+                            style = msText(12.sp, FontWeight.Medium, MsColor.InkMuted).copy(textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough),
+                        )
+                        DiscountPill((((old - item.unitPrice) / old) * 100).toInt())
+                    }
                 }
-                Spacer(Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    FilledIconButton(
-                        onClick = { if (item.quantity > 1) onQuantityChange(item.quantity - 1) else onRemove() },
-                        modifier = Modifier.size(28.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = PrimaryPurple.copy(alpha = 0.1f)),
-                    ) { Icon(Icons.Filled.Remove, contentDescription = null, tint = PrimaryPurple, modifier = Modifier.size(14.dp)) }
-                    Text(item.quantity.toString(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, modifier = Modifier.width(24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                    FilledIconButton(
-                        onClick = { onQuantityChange(item.quantity + 1) },
-                        modifier = Modifier.size(28.dp),
-                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = PrimaryPurple),
-                    ) { Icon(Icons.Filled.Add, contentDescription = null, tint = androidx.compose.ui.graphics.Color.White, modifier = Modifier.size(14.dp)) }
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f)) { StockLabel(item.isAvailable && item.inStock, size = 12.sp) }
+                    QuantityStepper(
+                        quantity = item.quantity,
+                        onDecrement = { onQuantity(item.quantity - 1) },
+                        onIncrement = { onQuantity(item.quantity + 1) },
+                        height = 40.dp,
+                    )
                 }
             }
         }
@@ -151,20 +240,16 @@ private fun CartItemCard(
 }
 
 @Composable
-private fun CartBottomBar(subtotal: Double, itemCount: Int, onCheckout: () -> Unit) {
-    Surface(shadowElevation = 8.dp) {
-        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("სულ ($itemCount)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
-                Text("₾${"%.2f".format(subtotal)}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = PrimaryPurple)
+private fun SummaryCard(total: Double, count: Int) {
+    MsCard(Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(horizontal = 18.dp, vertical = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.LocalOffer, null, tint = MsColor.Purple600, modifier = Modifier.size(28.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text("შეკვეთის ჯამი:", style = msText(16.sp, FontWeight.ExtraBold))
+                Text("$count პროდუქტი", style = msText(12.sp, FontWeight.Medium, MsColor.InkSoft))
             }
-            Spacer(Modifier.height(12.dp))
-            MyShopButton(
-                text = "შეკვეთის განთავსება",
-                onClick = onCheckout,
-                leadingIcon = Icons.Filled.ShoppingCartCheckout,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Text(formatGel(total), style = msText(26.sp, FontWeight.ExtraBold, MsColor.Purple800))
         }
     }
 }

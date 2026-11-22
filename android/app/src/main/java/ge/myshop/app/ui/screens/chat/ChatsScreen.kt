@@ -1,6 +1,6 @@
 package ge.myshop.app.ui.screens.chat
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,17 +15,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.HeadsetMic
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Textsms
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,102 +32,109 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ge.myshop.app.domain.model.Conversation
+import ge.myshop.app.domain.model.MessageSender
+import ge.myshop.app.ui.common.LocalApp
+import ge.myshop.app.ui.components.CountBadge
 import ge.myshop.app.ui.components.EmptyState
-import ge.myshop.app.ui.components.ScreenHeader
-import ge.myshop.app.ui.theme.PrimaryPurple
-import java.time.format.DateTimeFormatter
+import ge.myshop.app.ui.components.ErrorState
+import ge.myshop.app.ui.components.LoadingState
+import ge.myshop.app.ui.components.MsCard
+import ge.myshop.app.ui.components.MyShopHeader
+import ge.myshop.app.ui.components.OrderStatusPill
+import ge.myshop.app.ui.components.formatDate
+import ge.myshop.app.ui.components.formatTime
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsBrush
+import ge.myshop.app.ui.theme.MsColor
 
 @Composable
 fun ChatsScreen(
-    onChatClick: (conversationId: String) -> Unit,
+    onNavigateToChat: (String) -> Unit,
     viewModel: ChatsViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val app = LocalApp.current
+    LaunchedEffect(Unit) { viewModel.load() }
 
-    Scaffold(
-        topBar = { ScreenHeader("შეტყობინებები") },
-    ) { padding ->
-        if (uiState.conversations.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            MyShopHeader(
+                bottom = {
+                    Column(Modifier.padding(start = 6.dp, bottom = 6.dp)) {
+                        Text("ჩათი", style = msText(30.sp, FontWeight.ExtraBold, Color.White))
+                        Text(
+                            app.store.chatResponseTime ?: "მიმოწერა ადმინისტრატორთან",
+                            style = msText(13.sp, FontWeight.Medium, Color.White.copy(alpha = 0.9f)),
+                        )
+                    }
+                },
+            )
+        }
+        when {
+            !state.isLoggedIn -> item {
+                EmptyState(Icons.Rounded.Lock, "შედი ანგარიშზე", subtitle = "ჩათი ხელმისაწვდომია შესვლის შემდეგ", actionText = "შესვლა", onAction = app.openLogin)
+            }
+            state.isLoading -> item { LoadingState() }
+            state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::load) }
+            state.conversations.isEmpty() -> item {
                 EmptyState(
-                    icon = "💬",
-                    title = "ჩატი არ გაქვს",
-                    subtitle = "შეკვეთის განთავსების შემდეგ ჩვენ გიკავშირდებით",
+                    Icons.Rounded.Textsms,
+                    "ჯერ მიმოწერა არ გაქვს",
+                    subtitle = "შეკვეთის გაგზავნის შემდეგ ადმინისტრატორთან ჩათი აქ გამოჩნდება",
                 )
             }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    top = padding.calculateTopPadding() + 8.dp,
-                    bottom = padding.calculateBottomPadding() + 80.dp,
-                ),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                items(uiState.conversations, key = { it.id }) { conversation ->
-                    ConversationItem(
-                        conversation = conversation,
-                        onClick = { onChatClick(conversation.id) },
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                }
+            else -> items(state.conversations, key = { it.id }) { c ->
+                ConversationRow(c, onClick = { onNavigateToChat(c.id) }, modifier = Modifier.padding(horizontal = 14.dp))
             }
         }
     }
 }
 
 @Composable
-private fun ConversationItem(conversation: Conversation, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // Shop avatar
-        Surface(
-            modifier = Modifier.size(48.dp).clip(CircleShape),
-            color = PrimaryPurple,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("M", style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+private fun ConversationRow(c: Conversation, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val last = c.lastMessage
+    val unread = c.customerUnreadCount
+    MsCard(modifier.fillMaxWidth(), onClick = onClick) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(54.dp).clip(CircleShape).background(MsBrush.PrimaryButton), contentAlignment = Alignment.Center) {
+                Icon(Icons.Rounded.HeadsetMic, null, tint = Color.White, modifier = Modifier.size(28.dp))
             }
-        }
-
-        Column(modifier = Modifier.weight(1f)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                    text = "შეკვეთა #${conversation.orderNumber ?: conversation.id.take(6)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (conversation.customerUnreadCount > 0) FontWeight.Bold else FontWeight.Normal,
-                )
-                conversation.lastMessageAt?.let { ts ->
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = ts.substringBefore("T").let {
-                            try { it } catch (e: Exception) { "" }
-                        },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline,
+                        c.orderNumber?.let { "შეკვეთა № $it" } ?: "ადმინისტრატორი",
+                        style = msText(15.sp, FontWeight.ExtraBold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
                     )
+                    val at = c.lastMessageAt
+                    Text(if (last != null) formatTime(at) else formatDate(at), style = msText(11.sp, FontWeight.Medium, MsColor.InkMuted))
                 }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = conversation.lastMessage?.content ?: "ჩატი",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (conversation.customerUnreadCount > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
-                )
-                if (conversation.customerUnreadCount > 0) {
-                    Badge(containerColor = PrimaryPurple) {
-                        Text(conversation.customerUnreadCount.toString(), color = Color.White)
-                    }
+                Spacer(Modifier.size(2.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        when {
+                            last == null -> "ახალი ჩათი"
+                            last.senderType == MessageSender.CUSTOMER -> "შენ: ${last.content}"
+                            else -> last.content
+                        },
+                        style = msText(13.sp, if (unread > 0) FontWeight.Bold else FontWeight.Medium, if (unread > 0) MsColor.Ink else MsColor.InkSoft),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (unread > 0) { Spacer(Modifier.width(8.dp)); CountBadge(unread) }
                 }
+                c.order?.status?.let { Spacer(Modifier.size(6.dp)); OrderStatusPill(it) }
             }
         }
     }

@@ -2,105 +2,80 @@ package ge.myshop.app.ui.screens.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Phone
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import ge.myshop.app.ui.components.MyShopButton
-import ge.myshop.app.ui.components.MyShopTextField
-import ge.myshop.app.ui.components.ScreenHeader
+import ge.myshop.app.ui.common.LocalApp
+import ge.myshop.app.ui.components.MsCard
+import ge.myshop.app.ui.components.MsPrimaryButton
+import ge.myshop.app.ui.components.MsTextField
+import ge.myshop.app.ui.components.MyShopPageHeader
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsColor
 
 @Composable
 fun EditProfileScreen(
     onNavigateBack: () -> Unit,
     viewModel: EditProfileViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val snackbar = remember { SnackbarHostState() }
-    var name by rememberSaveable { mutableStateOf(uiState.profile?.fullName ?: "") }
-    var phone by rememberSaveable { mutableStateOf(uiState.profile?.phone ?: "") }
+    val state by viewModel.uiState.collectAsState()
+    val app = LocalApp.current
+    var name by rememberSaveable { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
+    var prefilled by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.profile) {
-        uiState.profile?.let {
-            if (name.isBlank()) name = it.fullName ?: ""
-            if (phone.isBlank()) phone = it.phone ?: ""
+    LaunchedEffect(state.profile) {
+        val p = state.profile
+        if (p != null && !prefilled) {
+            name = p.fullName.orEmpty(); phone = p.phone.orEmpty(); prefilled = true
         }
     }
-    LaunchedEffect(uiState.saveSuccess) {
-        if (uiState.saveSuccess) {
-            snackbar.showSnackbar("პროფილი განახლდა")
-            onNavigateBack()
-        }
-    }
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { snackbar.showSnackbar(it) }
+    LaunchedEffect(state.saveSuccess) {
+        if (state.saveSuccess) { app.showMessage("პროფილი შენახულია"); onNavigateBack() }
     }
 
-    Scaffold(
-        topBar = { ScreenHeader("პროფილის რედაქტირება", onBack = onNavigateBack) },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Spacer(Modifier.height(8.dp))
-            MyShopTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = "სახელი გვარი",
-                leadingIcon = { Icon(Icons.Filled.Person, null) },
-            )
-            uiState.profile?.email?.let { email ->
-                MyShopTextField(
-                    value = email,
-                    onValueChange = {},
-                    label = "ელ-ფოსტა",
-                    leadingIcon = { Icon(Icons.Filled.Email, null) },
-                    enabled = false,
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()) {
+        MyShopPageHeader("პროფილის რედაქტირება", onBack = onNavigateBack)
+        MsCard(Modifier.padding(14.dp).fillMaxWidth(), contentPadding = PaddingValues(18.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("პირადი ინფორმაცია", style = msText(17.sp, FontWeight.ExtraBold))
+                MsTextField(name, { name = it.take(120) }, "სახელი და გვარი", leadingIcon = Icons.Rounded.Person, error = state.error)
+                MsTextField(phone, { phone = it.filter { c -> c.isDigit() || c in "+ " }.take(20) }, "ტელეფონი", leadingIcon = Icons.Rounded.Phone, keyboardType = KeyboardType.Phone)
+                state.profile?.email?.let { email ->
+                    MsTextField(email, {}, "ელ-ფოსტა", leadingIcon = Icons.Rounded.Email, enabled = false)
+                    Text("ელ-ფოსტის შეცვლა აპიდან შეუძლებელია", style = msText(12.sp, FontWeight.Medium, MsColor.InkMuted), modifier = Modifier.padding(start = 18.dp))
+                }
+                MsPrimaryButton(
+                    "შენახვა",
+                    onClick = { viewModel.save(name.trim(), phone.trim()) },
+                    icon = Icons.Rounded.Check,
+                    loading = state.isLoading,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            MyShopTextField(
-                value = phone,
-                onValueChange = { phone = it },
-                label = "ტელეფონი (სურვილისამებრ)",
-                leadingIcon = { Icon(Icons.Filled.Phone, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            )
-            MyShopButton(
-                text = "შენახვა",
-                onClick = { viewModel.save(name, phone) },
-                isLoading = uiState.isLoading,
-                modifier = Modifier.fillMaxWidth(),
-            )
         }
     }
 }

@@ -1,13 +1,16 @@
 package ge.myshop.app.ui.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import ge.myshop.app.navigateToTab
 import ge.myshop.app.ui.screens.auth.LoginScreen
-import ge.myshop.app.ui.screens.auth.OtpVerifyScreen
 import ge.myshop.app.ui.screens.auth.RegisterScreen
 import ge.myshop.app.ui.screens.cart.CartScreen
 import ge.myshop.app.ui.screens.cart.CheckoutScreen
@@ -28,132 +31,55 @@ import ge.myshop.app.ui.screens.profile.ProfileScreen
 import ge.myshop.app.ui.screens.search.SearchScreen
 
 @Composable
-fun NavGraph(
-    navController: NavHostController,
-    startDestination: String = Screen.Home.route,
-) {
-    NavHost(navController = navController, startDestination = startDestination) {
+fun NavGraph(navController: NavHostController, startDestination: String) {
+    val toProduct: (String) -> Unit = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) }
+    val toList: (String?, String?) -> Unit = { id, name -> navController.navigate(Screen.ProductList.createRoute(id, name)) }
+    val toChat: (String) -> Unit = { id -> navController.navigate(Screen.ChatDetail.createRoute(id)) }
+    val toOrder: (String) -> Unit = { id -> navController.navigate(Screen.OrderDetail.createRoute(id)) }
+    val back: () -> Unit = { if (!navController.popBackStack()) navController.navigateToTab(Screen.Home.route) }
+    val toRoute: (String) -> Unit = { route ->
+        if (route in bottomNavRoutes) navController.navigateToTab(route) else navController.navigate(route)
+    }
 
-        // ── Home ──────────────────────────────────────────────
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        enterTransition = { fadeIn(tween(220)) },
+        exitTransition = { fadeOut(tween(160)) },
+        popEnterTransition = { fadeIn(tween(220)) },
+        popExitTransition = { fadeOut(tween(160)) },
+    ) {
+        // ── Tabs
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToCategories = { navController.navigate(Screen.Categories.route) },
-                onNavigateToProductDetail = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onNavigateToProductList = { id, title -> navController.navigate(Screen.ProductList.createRoute(id, title)) },
+                onNavigateToCategories = { navController.navigateToTab(Screen.Categories.route) },
+                onNavigateToProductDetail = toProduct,
+                onNavigateToProductList = toList,
                 onNavigateToSearch = { navController.navigate(Screen.Search.route) },
                 onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
-                onNavigateToCart = { navController.navigate(Screen.Cart.route) },
+                onNavigateToCart = { navController.navigateToTab(Screen.Cart.route) },
+                onNavigateToRoute = toRoute,
             )
         }
-
-        // ── Categories ────────────────────────────────────────
         composable(Screen.Categories.route) {
             CategoriesScreen(
-                onCategoryClick = { id, name -> navController.navigate(Screen.ProductList.createRoute(id, name)) },
-                onSearchClick = { navController.navigate(Screen.Search.route) },
-                onCartClick = { navController.navigate(Screen.Cart.route) },
-                onNotificationsClick = { navController.navigate(Screen.Notifications.route) },
+                onNavigateBack = back,
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                onNavigateToProductList = toList,
             )
         }
-
-        // ── Product List ──────────────────────────────────────
-        composable(
-            route = Screen.ProductList.route,
-            arguments = listOf(
-                navArgument("categoryId") { type = NavType.StringType; nullable = true; defaultValue = null },
-                navArgument("categoryName") { type = NavType.StringType; nullable = true; defaultValue = null },
-            ),
-        ) { backStack ->
-            val categoryId = backStack.arguments?.getString("categoryId")
-            val categoryName = backStack.arguments?.getString("categoryName")
-            ProductListScreen(
-                categoryId = categoryId,
-                categoryName = categoryName,
-                onProductClick = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onNavigateBack = { navController.popBackStack() },
-            )
-        }
-
-        // ── Product Detail ────────────────────────────────────
-        composable(
-            route = Screen.ProductDetail.route,
-            arguments = listOf(navArgument("productId") { type = NavType.StringType }),
-        ) { backStack ->
-            ProductDetailScreen(
-                productId = backStack.arguments?.getString("productId") ?: "",
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCart = { navController.navigate(Screen.Cart.route) },
-                onNavigateToProductDetail = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onNavigateToLogin = { navController.navigate(Screen.Login.route) },
-            )
-        }
-
-        // ── Search ────────────────────────────────────────────
-        composable(Screen.Search.route) {
-            SearchScreen(
-                onProductClick = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onNavigateBack = { navController.popBackStack() },
-            )
-        }
-
-        // ── Cart ──────────────────────────────────────────────
         composable(Screen.Cart.route) {
             CartScreen(
-                onCheckoutClick = { navController.navigate(Screen.Checkout.route) },
-                onProductClick = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCheckout = { navController.navigate(Screen.Checkout.route) },
+                onNavigateToProductDetail = toProduct,
+                onNavigateToHome = { navController.navigateToTab(Screen.Home.route) },
+                onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
+                onNavigateToRoute = toRoute,
             )
         }
-
-        // ── Checkout ──────────────────────────────────────────
-        composable(Screen.Checkout.route) {
-            CheckoutScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onOrderPlaced = { orderId ->
-                    navController.navigate(Screen.OrderSuccess.createRoute(orderId)) {
-                        popUpTo(Screen.Cart.route) { inclusive = true }
-                    }
-                },
-            )
-        }
-
-        // ── Order Success ─────────────────────────────────────
-        composable(
-            route = Screen.OrderSuccess.route,
-            arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
-        ) { backStack ->
-            val orderId = backStack.arguments?.getString("orderId") ?: ""
-            OrderSuccessScreen(
-                orderId = orderId,
-                onGoHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                },
-                onGoToChat = { navController.navigate(Screen.Chats.route) },
-            )
-        }
-
-        // ── Chats ─────────────────────────────────────────────
         composable(Screen.Chats.route) {
-            ChatsScreen(
-                onChatClick = { conversationId -> navController.navigate(Screen.ChatDetail.createRoute(conversationId)) },
-            )
+            ChatsScreen(onNavigateToChat = toChat)
         }
-
-        // ── Chat Detail ───────────────────────────────────────
-        composable(
-            route = Screen.ChatDetail.route,
-            arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
-        ) { backStack ->
-            ChatDetailScreen(
-                conversationId = backStack.arguments?.getString("conversationId") ?: "",
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToOrderDetail = { id -> navController.navigate(Screen.OrderDetail.createRoute(id)) },
-            )
-        }
-
-        // ── Profile ───────────────────────────────────────────
         composable(Screen.Profile.route) {
             ProfileScreen(
                 onOrdersClick = { navController.navigate(Screen.OrderHistory.route) },
@@ -162,86 +88,139 @@ fun NavGraph(
                 onNotificationsClick = { navController.navigate(Screen.Notifications.route) },
                 onEditProfileClick = { navController.navigate(Screen.EditProfile.route) },
                 onLoginClick = { navController.navigate(Screen.Login.route) },
+                onRegisterClick = { navController.navigate(Screen.Register.route) },
+                onChatClick = { navController.navigateToTab(Screen.Chats.route) },
+                onOrderClick = toOrder,
             )
         }
 
-        // ── Auth ──────────────────────────────────────────────
+        // ── Catalog
+        composable(
+            route = Screen.ProductList.route,
+            arguments = listOf(
+                navArgument("categoryId") { type = NavType.StringType; defaultValue = "" },
+                navArgument("categoryName") { type = NavType.StringType; defaultValue = "" },
+            ),
+        ) {
+            ProductListScreen(
+                onNavigateBack = back,
+                onNavigateToProductDetail = toProduct,
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                onNavigateToCategories = { navController.navigateToTab(Screen.Categories.route) },
+            )
+        }
+        composable(
+            route = Screen.ProductDetail.route,
+            arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+        ) { entry ->
+            ProductDetailScreen(
+                productId = entry.arguments?.getString("productId").orEmpty(),
+                onNavigateBack = back,
+                onNavigateToCart = { navController.navigateToTab(Screen.Cart.route) },
+                onNavigateToProductDetail = toProduct,
+                onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+            )
+        }
+        composable(Screen.Search.route) {
+            SearchScreen(
+                onProductClick = toProduct,
+                onNavigateBack = back,
+                onCategoryClick = { id, name -> toList(id, name) },
+            )
+        }
+
+        // ── Checkout
+        composable(Screen.Checkout.route) {
+            CheckoutScreen(
+                onNavigateBack = back,
+                onOrderPlaced = { orderId ->
+                    navController.navigate(Screen.OrderSuccess.createRoute(orderId)) {
+                        popUpTo(Screen.Cart.route) { inclusive = false }
+                    }
+                },
+                onNavigateHome = { navController.navigateToTab(Screen.Home.route) },
+            )
+        }
+        composable(
+            route = Screen.OrderSuccess.route,
+            arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
+        ) { entry ->
+            val orderId = entry.arguments?.getString("orderId").orEmpty()
+            OrderSuccessScreen(
+                orderId = orderId,
+                onGoHome = { navController.navigateToTab(Screen.Home.route) },
+                onGoToChat = { convId -> if (convId != null) toChat(convId) else navController.navigateToTab(Screen.Chats.route) },
+                onViewOrder = toOrder,
+            )
+        }
+
+        // ── Chat
+        composable(
+            route = Screen.ChatDetail.route,
+            arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
+        ) { entry ->
+            ChatDetailScreen(
+                conversationId = entry.arguments?.getString("conversationId").orEmpty(),
+                onNavigateBack = back,
+                onNavigateToOrderDetail = toOrder,
+            )
+        }
+
+        // ── Auth
         composable(Screen.Login.route) {
             LoginScreen(
-                onNavigateToRegister = { navController.navigate(Screen.Register.route) },
-                onNavigateToPhoneAuth = { navController.navigate(Screen.OtpVerify.createRoute("")) },
-                onLoginSuccess = {
-                    navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
+                onNavigateToRegister = { navController.navigate(Screen.Register.route) { launchSingleTop = true } },
+                onLoginSuccess = back,
+                onNavigateBack = back,
             )
         }
-
         composable(Screen.Register.route) {
             RegisterScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onRegisterSuccess = {
-                    navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
+                onNavigateBack = back,
+                onRegisterSuccess = { navController.popBackStack(Screen.Login.route, inclusive = true); back() },
+                onGoToLogin = {
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.Register.route) { inclusive = true }
+                        launchSingleTop = true
                     }
                 },
             )
         }
 
-        composable(
-            route = Screen.OtpVerify.route,
-            arguments = listOf(navArgument("phone") { type = NavType.StringType; defaultValue = "" }),
-        ) { backStack ->
-            val phone = backStack.arguments?.getString("phone") ?: ""
-            OtpVerifyScreen(
-                phone = phone,
-                onVerified = {
-                    navController.navigate(Screen.Profile.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
-                onNavigateBack = { navController.popBackStack() },
-            )
-        }
-
-        // ── Order History & Detail ────────────────────────────
+        // ── Profile sub-screens
         composable(Screen.OrderHistory.route) {
             OrderHistoryScreen(
-                onOrderClick = { id -> navController.navigate(Screen.OrderDetail.createRoute(id)) },
-                onNavigateBack = { navController.popBackStack() },
+                onNavigateBack = back,
+                onOrderClick = toOrder,
+                onStartShopping = { navController.navigateToTab(Screen.Home.route) },
             )
         }
-
         composable(
             route = Screen.OrderDetail.route,
             arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
-        ) {
+        ) { entry ->
             OrderDetailScreen(
-                orderId = it.arguments?.getString("orderId") ?: "",
-                onChatClick = { convId -> navController.navigate(Screen.ChatDetail.createRoute(convId)) },
-                onNavigateBack = { navController.popBackStack() },
+                orderId = entry.arguments?.getString("orderId").orEmpty(),
+                onChatClick = toChat,
+                onNavigateBack = back,
             )
         }
-
-        // ── Favorites, Addresses, Notifications, Edit Profile ─
         composable(Screen.Favorites.route) {
             FavoritesScreen(
-                onProductClick = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onNavigateBack = { navController.popBackStack() },
+                onProductClick = toProduct,
+                onNavigateBack = back,
+                onBrowse = { navController.navigateToTab(Screen.Home.route) },
             )
         }
-
-        composable(Screen.Addresses.route) {
-            AddressesScreen(onNavigateBack = { navController.popBackStack() })
-        }
-
+        composable(Screen.Addresses.route) { AddressesScreen(onNavigateBack = back) }
         composable(Screen.Notifications.route) {
-            NotificationsScreen(onNavigateBack = { navController.popBackStack() })
+            NotificationsScreen(
+                onNavigateBack = back,
+                onOpenOrder = toOrder,
+                onOpenChat = toChat,
+                onOpenProduct = toProduct,
+            )
         }
-
-        composable(Screen.EditProfile.route) {
-            EditProfileScreen(onNavigateBack = { navController.popBackStack() })
-        }
+        composable(Screen.EditProfile.route) { EditProfileScreen(onNavigateBack = back) }
     }
 }

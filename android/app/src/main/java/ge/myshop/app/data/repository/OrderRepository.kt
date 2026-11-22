@@ -32,9 +32,10 @@ class OrderRepository @Inject constructor(
         deliveryNotes: String? = null,
         customerNote: String? = null,
         items: List<CreateOrderItem>,
+        // Reuse the same key when retrying one checkout so the server never creates a duplicate order
+        idempotencyKey: String = UUID.randomUUID().toString(),
     ): Result<CreateOrderResult> {
         return runCatching {
-            val idempotencyKey = UUID.randomUUID().toString()
             val params = buildJsonObject {
                 put("p_customer_name", customerName)
                 put("p_customer_phone", customerPhone)

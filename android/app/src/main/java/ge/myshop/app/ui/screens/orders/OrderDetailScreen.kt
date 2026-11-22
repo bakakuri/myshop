@@ -1,7 +1,10 @@
 package ge.myshop.app.ui.screens.orders
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,15 +12,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
+import androidx.compose.material.icons.rounded.Forum
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Phone
+import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material.icons.rounded.Textsms
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,16 +32,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import ge.myshop.app.domain.model.OrderItem
-import ge.myshop.app.ui.components.MyShopButton
-import ge.myshop.app.ui.components.ScreenHeader
-import ge.myshop.app.ui.theme.PrimaryPurple
-import ge.myshop.app.ui.theme.ProductImageShape
+import ge.myshop.app.domain.model.Order
+import ge.myshop.app.ui.components.ErrorState
+import ge.myshop.app.ui.components.LoadingState
+import ge.myshop.app.ui.components.MsCard
+import ge.myshop.app.ui.components.MsImage
+import ge.myshop.app.ui.components.MsPrimaryButton
+import ge.myshop.app.ui.components.MyShopPageHeader
+import ge.myshop.app.ui.components.OrderStatusPill
+import ge.myshop.app.ui.components.OrderStatusStepper
+import ge.myshop.app.ui.components.formatDate
+import ge.myshop.app.ui.components.formatGel
+import ge.myshop.app.ui.components.formatTime
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsColor
 
 @Composable
 fun OrderDetailScreen(
@@ -43,90 +60,106 @@ fun OrderDetailScreen(
     onNavigateBack: () -> Unit,
     viewModel: OrderDetailViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val order = state.order
 
-    Scaffold(topBar = { ScreenHeader("შეკვეთის დეტალები", onBack = onNavigateBack) }) { padding ->
-        val order = uiState.order ?: return@Scaffold
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // Status card
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("შეკვეთა #${order.orderNumber}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        OrderStatusBadge(status = order.status)
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        MyShopPageHeader(
+            order?.let { "შეკვეთა № ${it.orderNumber}" } ?: "შეკვეთა",
+            onBack = onNavigateBack,
+            subtitle = order?.let { "${formatDate(it.createdAt)} ${formatTime(it.createdAt)}" },
+        )
+        when {
+            state.isLoading -> LoadingState()
+            order == null -> ErrorState("შეკვეთა ვერ მოიძებნა", onRetry = onNavigateBack)
+            else -> Column(Modifier.padding(horizontal = 14.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                // Status
+                MsCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("შეკვეთის სტატუსი", style = msText(16.sp, FontWeight.ExtraBold), modifier = Modifier.weight(1f))
+                        OrderStatusPill(order.status)
                     }
-                    Text(order.createdAt.substringBefore("T"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    Spacer(Modifier.height(14.dp))
+                    OrderStatusStepper(order.status)
                 }
-            }
 
-            // Items
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp)) {
-                Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text("პროდუქტები", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    order.items?.forEachIndexed { idx, item ->
-                        if (idx > 0) HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                        OrderItemRow(item)
-                    }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("სულ", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                        Text("₾${"%.2f".format(order.total)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = PrimaryPurple)
+                // Agreement note from staff (prices, delivery, payment agreed in chat)
+                order.agreementNote?.takeIf { it.isNotBlank() }?.let { note ->
+                    MsCard(Modifier.fillMaxWidth(), border = MsColor.Purple300, contentPadding = PaddingValues(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Rounded.Forum, null, tint = MsColor.Purple600, modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("შეთანხმებული პირობები", style = msText(15.sp, FontWeight.ExtraBold))
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Text(note, style = msText(14.sp, FontWeight.Medium, MsColor.InkSoft, lineHeight = 20.sp))
                     }
                 }
-            }
 
-            // Delivery info
-            if (!order.deliveryCity.isNullOrBlank() || !order.deliveryAddress.isNullOrBlank()) {
-                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp)) {
-                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("მიწოდება", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                        order.deliveryCity?.let { Text("ქ. $it") }
-                        order.deliveryAddress?.let { Text(it) }
-                    }
+                ItemsCard(order)
+                DeliveryCard(order)
+
+                val convId = state.conversationId ?: order.conversationId
+                if (convId != null) {
+                    MsPrimaryButton(
+                        "ჩათი ადმინისტრატორთან",
+                        onClick = { onChatClick(convId) },
+                        icon = Icons.Rounded.Textsms,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
+                Spacer(Modifier.height(16.dp))
             }
-
-            // Chat button
-            uiState.conversationId?.let { convId ->
-                MyShopButton(
-                    text = "ჩატში გადასვლა",
-                    onClick = { onChatClick(convId) },
-                    leadingIcon = Icons.Filled.Chat,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            Spacer(Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
-private fun OrderItemRow(item: OrderItem) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        if (!item.imageUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = item.imageUrl,
-                contentDescription = item.productNameKa,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(48.dp).clip(ProductImageShape),
-            )
+private fun ItemsCard(order: Order) {
+    MsCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+        Text("პროდუქტები", style = msText(16.sp, FontWeight.ExtraBold))
+        Spacer(Modifier.height(10.dp))
+        order.items.forEachIndexed { i, item ->
+            if (i > 0) Box(Modifier.fillMaxWidth().padding(vertical = 10.dp).height(1.dp).background(MsColor.Divider))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                MsImage(item.imageUrl, item.productNameKa, Modifier.size(58.dp), fallbackIcon = Icons.Rounded.ShoppingCart, shape = RoundedCornerShape(14.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(item.productNameKa, style = msText(14.5.sp, FontWeight.Bold), maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    item.variantNameKa?.let { Text(it, style = msText(12.sp, FontWeight.Medium, MsColor.InkSoft)) }
+                    Text("${item.quantity} × ${formatGel(item.unitPrice)}", style = msText(12.5.sp, FontWeight.SemiBold, MsColor.InkSoft))
+                }
+                Text(formatGel(item.lineTotal), style = msText(15.sp, FontWeight.ExtraBold, MsColor.Purple800))
+            }
         }
-        Column(Modifier.weight(1f)) {
-            Text(item.productNameKa, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
-            Text("× ${item.quantity}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+        Box(Modifier.fillMaxWidth().padding(vertical = 12.dp).height(1.dp).background(MsColor.Divider))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("ჯამი", style = msText(16.sp, FontWeight.ExtraBold), modifier = Modifier.weight(1f))
+            Text(formatGel(order.total), style = msText(24.sp, FontWeight.ExtraBold, MsColor.Purple800))
         }
-        Text("₾${"%.2f".format(item.lineTotal)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = PrimaryPurple)
+    }
+}
+
+@Composable
+private fun DeliveryCard(order: Order) {
+    MsCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(16.dp)) {
+        Text("მიწოდების ინფორმაცია", style = msText(16.sp, FontWeight.ExtraBold))
+        Spacer(Modifier.height(8.dp))
+        InfoRow(Icons.Rounded.Person, order.customerName)
+        InfoRow(Icons.Rounded.Phone, order.customerPhone)
+        val place = listOfNotNull(order.deliveryAddress, order.deliveryCity).filter { it.isNotBlank() }.joinToString(", ")
+        if (place.isNotBlank()) InfoRow(Icons.Rounded.LocationOn, place)
+        order.customerNote?.takeIf { it.isNotBlank() }?.let { InfoRow(Icons.Rounded.ChatBubbleOutline, it) }
+    }
+}
+
+@Composable
+private fun InfoRow(icon: ImageVector, text: String) {
+    Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
+        Box(Modifier.size(32.dp).clip(RoundedCornerShape(10.dp)).background(MsColor.Purple100), contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = MsColor.Purple600, modifier = Modifier.size(18.dp))
+        }
+        Spacer(Modifier.width(10.dp))
+        Text(text, style = msText(14.sp, FontWeight.SemiBold, MsColor.Ink), modifier = Modifier.padding(top = 6.dp))
     }
 }

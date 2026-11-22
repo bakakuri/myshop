@@ -1,131 +1,142 @@
 package ge.myshop.app.ui.screens.auth
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import ge.myshop.app.ui.components.MyShopButton
-import ge.myshop.app.ui.components.MyShopOutlinedButton
-import ge.myshop.app.ui.components.MyShopTextField
-import ge.myshop.app.ui.components.ScreenHeader
-import ge.myshop.app.ui.theme.LogoTextStyle
-import ge.myshop.app.ui.theme.PrimaryPurple
+import ge.myshop.app.R
+import ge.myshop.app.ui.common.LocalApp
+import ge.myshop.app.ui.components.EmptyState
+import ge.myshop.app.ui.components.HeaderAction
+import ge.myshop.app.ui.components.MsCard
+import ge.myshop.app.ui.components.MsOutlinedButton
+import ge.myshop.app.ui.components.MsPrimaryButton
+import ge.myshop.app.ui.components.MsTextField
+import ge.myshop.app.ui.components.MyShopHeader
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsColor
+import ge.myshop.app.ui.theme.MsShape
 
-// ============================================================
-// Auth Screens: Login, Register, OTP Verify
-// ============================================================
+@Composable
+private fun AuthFrame(
+    title: String,
+    subtitle: String,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .imePadding()
+            .navigationBarsPadding(),
+    ) {
+        MyShopHeader(leading = HeaderAction(Icons.AutoMirrored.Rounded.ArrowBack, "უკან", onClick = onBack))
+        MsCard(Modifier.padding(horizontal = 14.dp).fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = msText(24.sp, FontWeight.ExtraBold))
+                    Spacer(Modifier.height(4.dp))
+                    Text(subtitle, style = msText(13.5.sp, FontWeight.Medium, MsColor.InkSoft, lineHeight = 19.sp))
+                }
+                Image(painterResource(R.drawable.ill_bags), null, Modifier.size(width = 96.dp, height = 80.dp))
+            }
+            Spacer(Modifier.height(18.dp))
+            content()
+        }
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun PasswordToggle(visible: Boolean, onToggle: () -> Unit) {
+    Box(
+        Modifier.size(36.dp).clip(MsShape.Pill).clickable(role = Role.Button, onClickLabel = if (visible) "დამალვა" else "ჩვენება", onClick = onToggle),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(if (visible) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility, if (visible) "პაროლის დამალვა" else "პაროლის ჩვენება", tint = MsColor.Purple600)
+    }
+}
 
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit,
-    onNavigateToPhoneAuth: () -> Unit,
     onLoginSuccess: () -> Unit,
+    onNavigateBack: () -> Unit = onLoginSuccess,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val snackbar = remember { SnackbarHostState() }
+    val state by viewModel.uiState.collectAsState()
+    val app = LocalApp.current
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    var showPassword by remember { mutableStateOf(false) }
+    var show by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.isLoggedIn) {
-        if (uiState.isLoggedIn) onLoginSuccess()
-    }
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let {
-            snackbar.showSnackbar(it)
-            viewModel.clearError()
-        }
+    LaunchedEffect(state.isLoggedIn) {
+        if (state.isLoggedIn) { app.refreshBadges(); app.showMessage("კეთილი იყოს შენი დაბრუნება!"); onLoginSuccess() }
     }
 
-    Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Spacer(Modifier.height(40.dp))
-            Text(text = "MYSHOP", style = LogoTextStyle, color = PrimaryPurple)
-            Text(text = "შესვლა", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(8.dp))
-
-            MyShopTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = "ელ-ფოსტა",
-                leadingIcon = { Icon(Icons.Filled.Email, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+    AuthFrame("შესვლა", "შედი ანგარიშზე — კალათა, შეკვეთები და ჩათი ერთ ადგილას", onNavigateBack) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            MsTextField(email, { email = it.trim(); viewModel.clearError() }, "ელ-ფოსტა", leadingIcon = Icons.Rounded.Email, keyboardType = KeyboardType.Email)
+            MsTextField(
+                password,
+                { password = it; viewModel.clearError() },
+                "პაროლი",
+                leadingIcon = Icons.Rounded.Lock,
+                isPassword = !show,
+                keyboardType = KeyboardType.Password,
+                trailing = { PasswordToggle(show) { show = !show } },
+                error = state.error,
             )
-            MyShopTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = "პაროლი",
-                leadingIcon = { Icon(Icons.Filled.Lock, null) },
-                trailingIcon = {
-                    IconButton(onClick = { showPassword = !showPassword }) {
-                        Icon(if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, null)
-                    }
-                },
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            )
-            MyShopButton(
-                text = "შესვლა",
-                onClick = { viewModel.signIn(email, password) },
-                isLoading = uiState.isLoading,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            MyShopOutlinedButton(
-                text = "ტელეფონით შესვლა",
-                onClick = onNavigateToPhoneAuth,
-                leadingIcon = Icons.Filled.Phone,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(8.dp))
-            TextButton(onClick = onNavigateToRegister) {
-                Text("ანგარიში არ გაქვს? რეგისტრაცია", color = PrimaryPurple)
+            Spacer(Modifier.height(4.dp))
+            MsPrimaryButton("შესვლა", onClick = { viewModel.signIn(email, password) }, loading = state.isLoading, modifier = Modifier.fillMaxWidth())
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Text("არ გაქვს ანგარიში? ", style = msText(14.sp, FontWeight.Medium, MsColor.InkSoft))
+                Text(
+                    "რეგისტრაცია",
+                    style = msText(14.sp, FontWeight.ExtraBold, MsColor.Purple600),
+                    modifier = Modifier.clip(MsShape.Pill).clickable(role = Role.Button, onClick = onNavigateToRegister).padding(6.dp),
+                )
             }
         }
     }
@@ -135,84 +146,56 @@ fun LoginScreen(
 fun RegisterScreen(
     onNavigateBack: () -> Unit,
     onRegisterSuccess: () -> Unit,
+    onGoToLogin: () -> Unit = onNavigateBack,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val snackbar = remember { SnackbarHostState() }
+    val state by viewModel.uiState.collectAsState()
+    val app = LocalApp.current
     var name by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    var showPassword by remember { mutableStateOf(false) }
+    var show by rememberSaveable { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.isLoggedIn) {
-        if (uiState.isLoggedIn) onRegisterSuccess()
-    }
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { snackbar.showSnackbar(it); viewModel.clearError() }
+    LaunchedEffect(state.isLoggedIn) {
+        if (state.isLoggedIn) { app.refreshBadges(); onRegisterSuccess() }
     }
 
-    Scaffold(
-        topBar = { ScreenHeader("რეგისტრაცია", onBack = onNavigateBack) },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Spacer(Modifier.height(8.dp))
-            MyShopTextField(value = name, onValueChange = { name = it }, label = "სახელი გვარი",
-                leadingIcon = { Icon(Icons.Filled.Person, null) })
-            MyShopTextField(value = email, onValueChange = { email = it }, label = "ელ-ფოსტა",
-                leadingIcon = { Icon(Icons.Filled.Email, null) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
-            MyShopTextField(value = password, onValueChange = { password = it }, label = "პაროლი",
-                leadingIcon = { Icon(Icons.Filled.Lock, null) },
-                trailingIcon = { IconButton(onClick = { showPassword = !showPassword }) {
-                    Icon(if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, null) } },
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
-            MyShopButton(text = "რეგისტრაცია", onClick = { viewModel.signUp(email, password, name) },
-                isLoading = uiState.isLoading, modifier = Modifier.fillMaxWidth())
+    val sentTo = state.confirmationSentTo
+    if (sentTo != null) {
+        AuthFrame("შეამოწმე მეილი", "ანგარიში შეიქმნა", onNavigateBack) {
+            EmptyState(
+                Icons.Rounded.Email,
+                "დადასტურების ბმული გაიგზავნა",
+                subtitle = "$sentTo — გახსენი წერილი, დააჭირე ბმულს და შემდეგ შედი ანგარიშზე.",
+            )
+            MsPrimaryButton("შესვლა", onClick = onGoToLogin, modifier = Modifier.fillMaxWidth())
         }
-    }
-}
-
-@Composable
-fun OtpVerifyScreen(
-    phone: String,
-    onVerified: () -> Unit,
-    onNavigateBack: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel(),
-) {
-    val uiState by viewModel.uiState.collectAsState()
-    val snackbar = remember { SnackbarHostState() }
-    var otp by rememberSaveable { mutableStateOf("") }
-
-    LaunchedEffect(uiState.isLoggedIn) { if (uiState.isLoggedIn) onVerified() }
-    LaunchedEffect(uiState.error) {
-        uiState.error?.let { snackbar.showSnackbar(it); viewModel.clearError() }
+        return
     }
 
-    Scaffold(
-        topBar = { ScreenHeader("კოდის შეყვანა", onBack = onNavigateBack) },
-        snackbarHost = { SnackbarHost(snackbar) },
-    ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Spacer(Modifier.height(24.dp))
-            Text("კოდი გამოვაგზავნეთ ნომერზე\n$phone",
-                style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
-            MyShopTextField(value = otp, onValueChange = { otp = it }, label = "SMS კოდი",
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-            MyShopButton(text = "დადასტურება", onClick = { viewModel.verifyOtp(phone, otp) },
-                isLoading = uiState.isLoading, modifier = Modifier.fillMaxWidth())
+    AuthFrame("რეგისტრაცია", "შექმენი ანგარიში და შეუკვეთე მარტივად", onNavigateBack) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            MsTextField(name, { name = it.take(120); viewModel.clearError() }, "სახელი და გვარი", leadingIcon = Icons.Rounded.Person)
+            MsTextField(email, { email = it.trim(); viewModel.clearError() }, "ელ-ფოსტა", leadingIcon = Icons.Rounded.Email, keyboardType = KeyboardType.Email)
+            MsTextField(
+                password,
+                { password = it; viewModel.clearError() },
+                "პაროლი (მინ. 8 სიმბოლო)",
+                leadingIcon = Icons.Rounded.Lock,
+                isPassword = !show,
+                keyboardType = KeyboardType.Password,
+                trailing = { PasswordToggle(show) { show = !show } },
+                error = state.error,
+            )
+            Spacer(Modifier.height(4.dp))
+            MsPrimaryButton("რეგისტრაცია", onClick = { viewModel.signUp(email, password, name) }, loading = state.isLoading, modifier = Modifier.fillMaxWidth())
+            MsOutlinedButton("უკვე მაქვს ანგარიში", onClick = onGoToLogin, modifier = Modifier.fillMaxWidth())
+            Text(
+                "რეგისტრაციით ეთანხმები მაღაზიის წესებს. აპში ბარათით გადახდა არ ხდება.",
+                style = msText(12.sp, FontWeight.Medium, MsColor.InkMuted),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
     }
 }

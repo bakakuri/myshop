@@ -1,6 +1,6 @@
 package ge.myshop.app.ui.navigation
 
-import java.net.URLEncoder
+import android.net.Uri
 
 sealed class Screen(val route: String) {
     // Bottom nav tabs
@@ -13,7 +13,7 @@ sealed class Screen(val route: String) {
     // Catalog
     object ProductList : Screen("products?categoryId={categoryId}&categoryName={categoryName}") {
         fun createRoute(categoryId: String?, name: String?) =
-            "products?categoryId=${categoryId ?: ""}&categoryName=${name?.let { URLEncoder.encode(it, "UTF-8") } ?: ""}"
+            "products?categoryId=${categoryId ?: ""}&categoryName=${name?.let { Uri.encode(it) } ?: ""}"
     }
     object ProductDetail : Screen("product/{productId}") {
         fun createRoute(id: String) = "product/$id"
@@ -34,9 +34,6 @@ sealed class Screen(val route: String) {
     // Auth
     object Login : Screen("login")
     object Register : Screen("register")
-    object OtpVerify : Screen("otp/{phone}") {
-        fun createRoute(phone: String) = "otp/${URLEncoder.encode(phone, "UTF-8")}"
-    }
 
     // Profile sub-screens
     object OrderHistory : Screen("orders")

@@ -55,6 +55,18 @@ class ChatRepository @Inject constructor(
         }
     }
 
+    /** One conversation with its order summary (RLS limits it to participants/staff). */
+    suspend fun getConversation(conversationId: String): Result<Conversation> {
+        return runCatching {
+            supabase.postgrest
+                .from("conversations")
+                .select(Columns.raw("*, order:orders!order_id(id, order_number, status, total, created_at)")) {
+                    filter { eq("id", conversationId) }
+                }
+                .decodeSingle<Conversation>()
+        }
+    }
+
     suspend fun getConversationByOrderId(orderId: String): Result<Conversation?> {
         return runCatching {
             supabase.postgrest

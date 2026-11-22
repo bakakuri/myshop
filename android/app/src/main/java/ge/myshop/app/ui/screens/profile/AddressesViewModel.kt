@@ -12,10 +12,31 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class AddressForm(
+    val label: String = "",
+    val recipientName: String = "",
+    val phone: String = "",
+    val city: String = "",
+    val street: String = "",
+    val building: String = "",
+    val apartment: String = "",
+    val notes: String = "",
+    val makeDefault: Boolean = false,
+    val showErrors: Boolean = false,
+) {
+    val nameError get() = if (showErrors && recipientName.isBlank()) "სავალდებულოა" else null
+    val phoneError get() = if (showErrors && phone.count { it.isDigit() } < 9) "შეიყვანეთ სწორი ნომერი" else null
+    val cityError get() = if (showErrors && city.isBlank()) "სავალდებულოა" else null
+    val streetError get() = if (showErrors && street.isBlank()) "სავალდებულოა" else null
+    val isValid get() = recipientName.isNotBlank() && phone.count { it.isDigit() } >= 9 && city.isNotBlank() && street.isNotBlank()
+}
+
 data class AddressesUiState(
     val addresses: List<Address> = emptyList(),
     val isLoading: Boolean = true,
-    val showAddDialog: Boolean = false,
+    val error: String? = null,
+    val form: AddressForm? = null,   // non-null = add sheet open
+    val isSaving: Boolean = false,
 )
 
 @HiltViewModel
@@ -28,23 +49,51 @@ class AddressesViewModel @Inject constructor(
 
     init { load() }
 
-    private fun load() {
+    fun load() {
         viewModelScope.launch {
             addressRepository.getAddresses()
-                .fold(
-                    onSuccess = { addrs -> _uiState.update { it.copy(addresses = addrs, isLoading = false) } },
-                    onFailure = { _uiState.update { it.copy(isLoading = false) } },
-                )
+                .onSuccess { list -> _uiState.update { it.copy(addresses = list.sortedByDescending { a -> a.isDefault }, isLoading = false, error = null) } }
+                .onFailure { _uiState.update { it.copy(isLoading = false, error = "მისამართების ჩატვირთვა ვერ მოხერხდა.") } }
         }
+    }
+
+    fun openForm() = _uiState.update { it.copy(form = AddressForm(makeDefault = it.addresses.isEmpty())) }
+    fun closeForm() = _uiState.update { it.copy(form = null) }
+    fun updateForm(transform: (AddressForm) -> AddressForm) = _uiState.update { s -> s.copy(form = s.form?.let(transform)) }
+
+    fun save() {
+        val f = _uiState.value.form ?: return
+        if (!f.isValid) { updateForm { it.copy(showErrors = true) }; return }
+        _uiState.update { it.copy(isSaving = true) }
+        viewModelScope.launch {
+            val address = Address(
+                userId = "", // set from the session in the repository
+                label = f.label.trim().ifBlank { null },
+                recipientName = f.recipientName.trim(),
+                phone = f.phone.trim(),
+                city = f.city.trim(),
+                street = f.street.trim(),
+                building = f.building.trim().ifBlank { null },
+                apartment = f.apartment.trim().ifBlank { null },
+                notes = f.notes.trim().ifBlank { null },
+                isDefault = false,
+            )
+            addressRepository.addAddress(address)
+                .onSuccess { created ->
+                    if (f.makeDefault && created.id.isNotBlank()) addressRepository.setDefault(created.id)
+                    _uiState.update { it.copy(isSaving = false, form = null) }
+                    load()
+                }
+                .onFailure { _uiState.update { it.copy(isSaving = false, error = "მისამართის შენახვა ვერ მოხერხდა.") } }
+        }
+    }
+
+    fun setDefault(id: String) {
+        viewModelScope.launch { addressRepository.setDefault(id); load() }
     }
 
     fun deleteAddress(id: String) {
-        viewModelScope.launch {
-            addressRepository.deleteAddress(id)
-            load()
-        }
+        _uiState.update { s -> s.copy(addresses = s.addresses.filterNot { it.id == id }) }
+        viewModelScope.launch { addressRepository.deleteAddress(id); load() }
     }
-
-    fun showAddDialog() = _uiState.update { it.copy(showAddDialog = true) }
-    fun hideAddDialog() = _uiState.update { it.copy(showAddDialog = false) }
 }

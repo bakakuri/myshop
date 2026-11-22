@@ -1,148 +1,117 @@
 package ge.myshop.app.ui.screens.catalog
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
-import ge.myshop.app.domain.model.Category
-import ge.myshop.app.ui.components.AppHeader
+import ge.myshop.app.ui.common.LocalApp
+import ge.myshop.app.ui.components.CategoryTile
+import ge.myshop.app.ui.components.EmptyState
 import ge.myshop.app.ui.components.ErrorState
-import ge.myshop.app.ui.components.ScreenHeader
+import ge.myshop.app.ui.components.FreeDeliveryBanner
+import ge.myshop.app.ui.components.HeaderAction
+import ge.myshop.app.ui.components.InfoDialog
+import ge.myshop.app.ui.components.MsSearchBar
+import ge.myshop.app.ui.components.MyShopHeader
 import ge.myshop.app.ui.components.ShimmerBox
-import ge.myshop.app.ui.theme.CategoryCardShape
-import ge.myshop.app.ui.theme.PrimaryPurple
+import ge.myshop.app.ui.components.formatGel
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsShape
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 
 @Composable
 fun CategoriesScreen(
-    onCategoryClick: (categoryId: String, name: String) -> Unit,
-    onSearchClick: () -> Unit,
-    onCartClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
+    onNavigateBack: () -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onNavigateToProductList: (String?, String?) -> Unit,
     viewModel: CategoriesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val store = LocalApp.current.store
+    var showDelivery by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            AppHeader(
-                onSearchClick = onSearchClick,
-                onCartClick = onCartClick,
-                onNotificationsClick = onNotificationsClick,
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            MyShopHeader(
+                leading = HeaderAction(Icons.AutoMirrored.Rounded.ArrowBack, "უკან", onClick = onNavigateBack),
+                actions = listOf(HeaderAction(Icons.Rounded.Search, "ძებნა", onClick = onNavigateToSearch)),
+                bottom = { MsSearchBar(onClick = onNavigateToSearch, placeholder = "მოძებნე კატეგორია ან პროდუქტი...") },
             )
-        },
-    ) { padding ->
+        }
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Text(
+                "ყველა კატეგორია",
+                style = msText(22.sp, FontWeight.ExtraBold),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+            )
+        }
+
         when {
-            uiState.isLoading -> CategoriesShimmer(padding)
-            uiState.error != null -> ErrorState(
-                message = uiState.error!!,
-                onRetry = viewModel::load,
-                modifier = Modifier.padding(padding),
-            )
-            else -> LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(
-                    start = 12.dp, end = 12.dp,
-                    top = padding.calculateTopPadding() + 8.dp,
-                    bottom = padding.calculateBottomPadding() + 8.dp,
-                ),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(uiState.categories, key = { it.id }) { category ->
-                    CategoryGridCard(category = category, onClick = { onCategoryClick(category.id, category.nameKa) })
+            state.isLoading -> items(6) { i ->
+                ShimmerBox(Modifier.tilePadding(i).fillMaxWidth().height(168.dp), MsShape.Card)
+            }
+            state.error != null -> item(span = { GridItemSpan(maxLineSpan) }) {
+                ErrorState(state.error!!, onRetry = viewModel::load)
+            }
+            state.categories.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                EmptyState(Icons.Rounded.GridView, "კატეგორიები ჯერ არ არის", subtitle = "მალე დაემატება")
+            }
+            else -> {
+                itemsIndexed(state.categories, key = { _, c -> c.id }) { i, c ->
+                    CategoryTile(c, i, onClick = { onNavigateToProductList(c.id, c.nameKa) }, modifier = Modifier.tilePadding(i))
+                }
+                store.freeDeliveryThreshold?.takeIf { store.deliveryEnabled }?.let { threshold ->
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        FreeDeliveryBanner(
+                            threshold = threshold,
+                            city = store.city,
+                            onClick = { showDelivery = true },
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        )
+                    }
                 }
             }
         }
     }
-}
 
-@Composable
-private fun CategoryGridCard(category: Category, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(130.dp)
-            .clip(CategoryCardShape)
-            .clickable(onClick = onClick),
-        shape = CategoryCardShape,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF3F0FF)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            if (!category.imageUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = category.imageUrl,
-                    contentDescription = category.nameKa,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-                // Gradient overlay for text readability
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(0.dp)
-                        // Semi-transparent overlay
-                        .clip(CategoryCardShape),
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .fillMaxWidth()
-                    .padding(12.dp),
-            ) {
-                Text(
-                    text = category.nameKa,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = if (category.imageUrl != null) Color.White else PrimaryPurple,
-                    textAlign = TextAlign.Start,
-                )
-            }
-        }
+    if (showDelivery) {
+        InfoDialog(
+            title = "უფასო მიწოდება",
+            lines = buildList {
+                store.freeDeliveryThreshold?.let { add("${formatGel(it)}-ზე მეტი შეკვეთისას მიწოდება უფასოა") }
+                add("მიწოდების ვადა: ${store.deliveryEstimate}")
+                add("დეტალებს ადმინისტრატორი შეგითანხმებს ჩათში")
+            },
+            onDismiss = { showDelivery = false },
+        )
     }
 }
 
-@Composable
-private fun CategoriesShimmer(padding: PaddingValues) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(
-            start = 12.dp, end = 12.dp,
-            top = padding.calculateTopPadding() + 8.dp,
-            bottom = 8.dp,
-        ),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        items(8) {
-            ShimmerBox(modifier = Modifier.fillMaxWidth().height(130.dp).clip(CategoryCardShape))
-        }
-    }
-}
+private fun Modifier.tilePadding(i: Int): Modifier =
+    if (i % 2 == 0) padding(start = 14.dp, end = 6.dp) else padding(start = 6.dp, end = 14.dp)

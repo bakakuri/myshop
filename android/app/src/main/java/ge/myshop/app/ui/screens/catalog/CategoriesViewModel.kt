@@ -34,7 +34,7 @@ class CategoriesViewModel @Inject constructor(
             productRepository.getCategories(parentId = null)
                 .fold(
                     onSuccess = { cats -> _uiState.update { it.copy(isLoading = false, categories = cats) } },
-                    onFailure = { e -> _uiState.update { it.copy(isLoading = false, error = e.message ?: "კატეგორიების ჩატვირთვა ვერ მოხდა") } },
+                    onFailure = { _uiState.update { it.copy(isLoading = false, error = "კატეგორიების ჩატვირთვა ვერ მოხერხდა. შეამოწმეთ ინტერნეტი.") } },
                 )
         }
     }

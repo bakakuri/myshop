@@ -2,146 +2,43 @@ package ge.myshop.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import ge.myshop.app.R
 
-// ============================================================
-// MYSHOP Typography — Georgian-first font system
-// Primary: BPG Arial / FiraGO for excellent Georgian glyph support
-// Fallback: system default
-// ============================================================
+// Poppins (Latin, digits) merged with Noto Sans Georgian (Georgian, ₾) — see android/fonts-license
+val MyShopFont = FontFamily(
+    Font(R.font.myshop_regular, FontWeight.Normal),
+    Font(R.font.myshop_medium, FontWeight.Medium),
+    Font(R.font.myshop_semibold, FontWeight.SemiBold),
+    Font(R.font.myshop_bold, FontWeight.Bold),
+    Font(R.font.myshop_extrabold, FontWeight.ExtraBold),
+)
 
-// Font family — system default (Noto Sans Georgian ships with Android and covers Georgian glyphs).
-// To use FiraGO later: add .ttf files to res/font/ and switch back to a FontFamily(Font(R.font...)).
-val MyShopFontFamily: FontFamily = FontFamily.Default
+private fun style(size: Int, weight: FontWeight, line: Int = (size * 1.3f).toInt()) = TextStyle(
+    fontFamily = MyShopFont,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    color = MsColor.Ink,
+)
 
 val MyShopTypography = Typography(
-    // Display — large hero text
-    displayLarge = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
-    ),
-    displayMedium = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
-    ),
-    displaySmall = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-    ),
-
-    // Headlines
-    headlineLarge = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 22.sp,
-        lineHeight = 30.sp,
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        lineHeight = 28.sp,
-    ),
-    headlineSmall = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
-        lineHeight = 26.sp,
-    ),
-
-    // Titles
-    titleLarge = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 18.sp,
-        lineHeight = 26.sp,
-    ),
-    titleMedium = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-    ),
-    titleSmall = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-    ),
-
-    // Body
-    bodyLarge = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-    ),
-    bodyMedium = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-    ),
-    bodySmall = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 18.sp,
-    ),
-
-    // Labels
-    labelLarge = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-    ),
-    labelMedium = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
-    ),
-    labelSmall = TextStyle(
-        fontFamily = MyShopFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 10.sp,
-        lineHeight = 14.sp,
-    ),
-)
-
-// Extra text styles
-val PriceTextStyle = TextStyle(
-    fontFamily = MyShopFontFamily,
-    fontWeight = FontWeight.ExtraBold,
-    fontSize = 20.sp,
-    color = TextPrice,
-)
-
-val PriceLargeTextStyle = TextStyle(
-    fontFamily = MyShopFontFamily,
-    fontWeight = FontWeight.ExtraBold,
-    fontSize = 28.sp,
-    color = TextPrice,
-)
-
-val PriceOldTextStyle = TextStyle(
-    fontFamily = MyShopFontFamily,
-    fontWeight = FontWeight.Normal,
-    fontSize = 13.sp,
-    color = TextPriceOld,
-)
-
-val LogoTextStyle = TextStyle(
-    fontFamily = MyShopFontFamily,
-    fontWeight = FontWeight.ExtraBold,
-    fontSize = 24.sp,
+    displayLarge = style(32, FontWeight.ExtraBold),     // big prices
+    displayMedium = style(28, FontWeight.ExtraBold),
+    displaySmall = style(24, FontWeight.ExtraBold),
+    headlineLarge = style(26, FontWeight.ExtraBold),    // screen hero titles
+    headlineMedium = style(22, FontWeight.ExtraBold),
+    headlineSmall = style(19, FontWeight.ExtraBold),
+    titleLarge = style(18, FontWeight.Bold),            // section titles
+    titleMedium = style(16, FontWeight.Bold),           // card titles
+    titleSmall = style(14, FontWeight.Bold),
+    bodyLarge = style(16, FontWeight.Medium),
+    bodyMedium = style(14, FontWeight.Medium),
+    bodySmall = style(12, FontWeight.Medium),
+    labelLarge = style(15, FontWeight.Bold),            // buttons
+    labelMedium = style(12, FontWeight.SemiBold),
+    labelSmall = style(11, FontWeight.SemiBold),
 )

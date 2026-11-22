@@ -1,85 +1,122 @@
 package ge.myshop.app.ui.screens.profile
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Announcement
+import androidx.compose.material.icons.rounded.DoneAll
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.LocalShipping
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Receipt
+import androidx.compose.material.icons.rounded.Textsms
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ge.myshop.app.domain.model.AppNotification
+import ge.myshop.app.domain.model.NotificationType
+import ge.myshop.app.ui.common.LocalApp
 import ge.myshop.app.ui.components.EmptyState
-import ge.myshop.app.ui.components.ScreenHeader
-import ge.myshop.app.ui.theme.PrimaryPurple
+import ge.myshop.app.ui.components.ErrorState
+import ge.myshop.app.ui.components.HeaderAction
+import ge.myshop.app.ui.components.IconTile
+import ge.myshop.app.ui.components.LoadingState
+import ge.myshop.app.ui.components.MsCard
+import ge.myshop.app.ui.components.MyShopPageHeader
+import ge.myshop.app.ui.components.formatDate
+import ge.myshop.app.ui.components.formatTime
+import ge.myshop.app.ui.components.msText
+import ge.myshop.app.ui.theme.MsColor
+
+private fun iconFor(type: NotificationType): ImageVector = when (type) {
+    NotificationType.ORDER_NEW -> Icons.Rounded.Receipt
+    NotificationType.ORDER_STATUS_UPDATE -> Icons.Rounded.LocalShipping
+    NotificationType.NEW_MESSAGE -> Icons.Rounded.Textsms
+    NotificationType.ANNOUNCEMENT -> Icons.Rounded.Announcement
+    NotificationType.LOW_STOCK -> Icons.Rounded.Warning
+}
 
 @Composable
 fun NotificationsScreen(
     onNavigateBack: () -> Unit,
+    onOpenOrder: (String) -> Unit = {},
+    onOpenChat: (String) -> Unit = {},
+    onOpenProduct: (String) -> Unit = {},
     viewModel: NotificationsViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsState()
+    val app = LocalApp.current
+    LaunchedEffect(state.unread) { app.refreshBadges() }
 
-    Scaffold(topBar = { ScreenHeader("შეტყობინებები", onBack = onNavigateBack) }) { padding ->
-        if (uiState.notifications.isEmpty()) {
-            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                EmptyState(icon = "🔔", title = "შეტყობინება არ გაქვს", subtitle = "ახალი შეტყობინებები აქ გამოჩნდება")
-            }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = padding.calculateTopPadding() + 8.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                items(uiState.notifications, key = { it.id }) { notif ->
-                    NotificationCard(notif = notif, onRead = { viewModel.markRead(notif.id) })
-                }
+    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            MyShopPageHeader(
+                "შეტყობინებები",
+                onBack = onNavigateBack,
+                subtitle = if (state.unread > 0) "${state.unread} წაუკითხავი" else "ყველა წაკითხულია",
+                actions = if (state.unread > 0) listOf(HeaderAction(Icons.Rounded.DoneAll, "ყველას წაკითხულად მონიშვნა", onClick = viewModel::markAllRead)) else emptyList(),
+            )
+        }
+        when {
+            !state.isLoggedIn -> item { EmptyState(Icons.Rounded.Lock, "შედი ანგარიშზე", subtitle = "შეტყობინებები ანგარიშზეა მიბმული", actionText = "შესვლა", onAction = app.openLogin) }
+            state.isLoading -> item { LoadingState() }
+            state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::load) }
+            state.notifications.isEmpty() -> item { EmptyState(Icons.Rounded.Notifications, "შეტყობინებები არ არის", subtitle = "შეკვეთის სტატუსები და ჩათის პასუხები აქ გამოჩნდება") }
+            else -> items(state.notifications, key = { it.id }) { n ->
+                NotificationRow(
+                    n,
+                    onClick = {
+                        if (!n.isRead) viewModel.markRead(n.id)
+                        when {
+                            n.relatedConversationId != null -> onOpenChat(n.relatedConversationId)
+                            n.relatedOrderId != null -> onOpenOrder(n.relatedOrderId)
+                            n.relatedProductId != null -> onOpenProduct(n.relatedProductId)
+                        }
+                    },
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun NotificationCard(notif: AppNotification, onRead: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (!notif.isRead) Color(0xFFEDE9FE) else MaterialTheme.colorScheme.surface,
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        onClick = onRead,
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(notif.titleKa, style = MaterialTheme.typography.bodyMedium, fontWeight = if (!notif.isRead) FontWeight.Bold else FontWeight.Normal)
-                notif.bodyKa?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline) }
-                Text(notif.createdAt.substringBefore("T"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
-            }
-            if (!notif.isRead) {
-                Box(Modifier.padding(top = 4.dp)) {
-                    // unread dot
-                    androidx.compose.foundation.Canvas(Modifier.padding(0.dp)) {
-                        drawCircle(color = PrimaryPurple, radius = 4.dp.toPx())
-                    }
+private fun NotificationRow(n: AppNotification, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    MsCard(modifier.fillMaxWidth(), border = if (n.isRead) MsColor.CardBorder else MsColor.Purple300, onClick = onClick) {
+        Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
+            IconTile(iconFor(n.type))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(n.titleKa, style = msText(15.sp, if (n.isRead) FontWeight.Bold else FontWeight.ExtraBold), modifier = Modifier.weight(1f))
+                    if (!n.isRead) Box(Modifier.size(9.dp).clip(CircleShape).background(MsColor.Purple500))
                 }
+                n.bodyKa?.let { Text(it, style = msText(13.sp, FontWeight.Medium, MsColor.InkSoft, lineHeight = 18.sp)) }
+                Text("${formatDate(n.createdAt)} ${formatTime(n.createdAt)}", style = msText(11.sp, FontWeight.Medium, MsColor.InkMuted), modifier = Modifier.padding(top = 4.dp))
             }
         }
     }
