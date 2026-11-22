@@ -36,7 +36,7 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/actions/wrapper-validation@v3
 
       - name: Decode keystore
         env:
