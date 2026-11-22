@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>შესვლა — MYSHOP Admin</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    window.__ENV__ = { SUPABASE_URL: '__SUPABASE_URL__', SUPABASE_ANON: '__SUPABASE_ANON_KEY__' };
+  </script>
+  <script src="env.js" onerror="void 0"></script>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: linear-gradient(135deg, #4C1D95 0%, #5B21B6 50%, #7C3AED 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+    }
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: #F59E0B;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      letter-spacing: -1px;
+    }
+    .logo-text h1 { font-size: 22px; font-weight: 800; color: #111827; letter-spacing: 1px; }
+    .logo-text p  { font-size: 13px; color: #6B7280; margin-top: 1px; }
+    .login-title { font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 6px; }
+    .login-sub   { font-size: 14px; color: #6B7280; margin-bottom: 32px; }
+    .form-group  { margin-bottom: 20px; }
+    .form-label  { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 7px; }
+    .form-input  {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+    .form-input:focus { border-color: #A78BFA; box-shadow: 0 0 0 3px rgba(91,33,182,0.1); }
+    .input-wrap { position: relative; }
+    .input-wrap .toggle-pw {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #9CA3AF;
+      padding: 2px;
+    }
+    .error-box {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #991B1B;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .error-box.show { display: block; }
+    .btn-login {
+      width: 100%;
+      height: 48px;
+      background: #5B21B6;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-login:hover:not(:disabled) { background: #4C1D95; box-shadow: 0 4px 14px rgba(91,33,182,0.35); }
+    .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+    .login-footer { margin-top: 24px; text-align: center; font-size: 12px; color: #9CA3AF; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">M</div>
+      <div class="logo-text">
+        <h1>MYSHOP</h1>
+        <p>ადმინ პანელი</p>
+      </div>
+    </div>
+
+    <h2 class="login-title">შესვლა</h2>
+    <p class="login-sub">შეიყვანეთ ადმინისტრატორის ანგარიში</p>
+
+    <div class="error-box" id="errorBox"></div>
+
+    <form id="loginForm" autocomplete="on">
+      <div class="form-group">
+        <label class="form-label" for="email">ელ. ფოსტა</label>
+        <input class="form-input" type="email" id="email" name="email"
+               placeholder="admin@example.com" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">პაროლი</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="password" name="password"
+                 placeholder="••••••••" required autocomplete="current-password"
+                 style="padding-right:44px">
+          <button type="button" class="toggle-pw" id="togglePw" aria-label="პაროლის ჩვენება">👁</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="submitBtn">
+        <span id="btnLabel">შესვლა</span>
+      </button>
+    </form>
+
+    <div class="login-footer">ge.myshop.app · Admin v1.0</div>
+  </div>
+
+  <script>
+    const SUPABASE_URL  = window.__ENV__?.SUPABASE_URL  || '__SUPABASE_URL__';
+    const SUPABASE_ANON = window.__ENV__?.SUPABASE_ANON || '__SUPABASE_ANON_KEY__';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    // Check if already logged in
+    sb.auth.getUser().then(({ data: { user } }) => {
+      if (user) window.location.href = 'index.html';
+    });
+
+    // Check for error param
+    const params = new URLSearchParams(location.search);
+    if (params.get('error') === 'access_denied') showError('წვდომა შეზღუდულია. ამ პანელზე შესვლის უფლება არ გაქვთ.');
+
+    // Toggle password visibility
+    document.getElementById('togglePw').addEventListener('click', () => {
+      const inp = document.getElementById('password');
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+    });
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn      = document.getElementById('submitBtn');
+      const label    = document.getElementById('btnLabel');
+
+      hideError();
+      btn.disabled = true;
+      label.innerHTML = '<div class="spinner"></div>';
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        showError('ელ. ფოსტა ან პაროლი არასწორია.');
+        btn.disabled = false;
+        label.textContent = 'შესვლა';
+        return;
+      }
+
+      // Verify role
+      const { data: profile } = await sb.from('profiles').select('role').eq('id', data.user.id).single();
+      const allowedRoles = ['owner','admin','order_manager','content_manager','support_agent'];
+      if (!profile || !allowedRoles.includes(profile.role)) {
+        await sb.auth.signOut();
+        showError('ამ ადმინ პანელზე შესვლის უფლება არ გაქვთ.');
+        btn.disabled = false;
+        label.textContent = 'შესვლა';
+        return;
+      }
+
+      window.location.href = 'index.html';
+    });
+
+    function showError(msg) {
+      const el = document.getElementById('errorBox');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+    function hideError() { document.getElementById('errorBox').classList.remove('show'); }
+  </script>
+</body>
+</html>

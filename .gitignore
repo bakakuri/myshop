@@ -1,0 +1,42 @@
+# ─── Secrets ───────────────────────────────────────────────
+.env
+.env.local
+.env.production
+*.jks
+*.keystore
+google-services.json
+admin/js/env.js
+
+# ─── Android ────────────────────────────────────────────────
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/**/*.iml
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+android/app/release/
+
+# ─── Supabase ────────────────────────────────────────────────
+.supabase/
+supabase/.temp/
+
+# ─── Node / npm ──────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+.vercel/
+
+# ─── OS ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ─── IDE ─────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+*.suo
+*.user

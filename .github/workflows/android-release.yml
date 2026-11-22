@@ -1,0 +1,139 @@
+name: Android Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: 'Version name (e.g. 1.2.0)'
+        required: true
+        type: string
+      version_code:
+        description: 'Version code (integer, monotonically increasing)'
+        required: true
+        type: string
+
+jobs:
+  build-release:
+    name: Build & Sign Release AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v2
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/myshop-release.jks
+
+      - name: Create local.properties
+        run: |
+          cat > android/local.properties << EOF
+          sdk.dir=/usr/local/lib/android/sdk
+          supabase.url=${{ secrets.SUPABASE_URL }}
+          supabase.anonKey=${{ secrets.SUPABASE_ANON_KEY }}
+          EOF
+
+      - name: Set version from tag or input
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # Strip leading 'v' from tag name
+            TAG="${{ github.ref_name }}"
+            echo "version_name=${TAG#v}" >> $GITHUB_OUTPUT
+            # Use commit count as version code (or override below)
+            echo "version_code=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
+          else
+            echo "version_name=${{ inputs.version_name }}" >> $GITHUB_OUTPUT
+            echo "version_code=${{ inputs.version_code }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build release AAB
+        env:
+          KEYSTORE_PATH: myshop-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: |
+          cd android
+          ./gradlew bundleRelease \
+            -PversionName="$VERSION_NAME" \
+            -PversionCode="$VERSION_CODE" \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            --no-daemon
+
+      - name: Build release APK (sideload)
+        env:
+          KEYSTORE_PATH: myshop-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
+        run: |
+          cd android
+          ./gradlew assembleRelease \
+            -PversionName="$VERSION_NAME" \
+            -PversionCode="$VERSION_CODE" \
+            -Pandroid.injected.signing.store.file="$KEYSTORE_PATH" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            --no-daemon
+
+      - name: Upload AAB to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: myshop-release-${{ steps.version.outputs.version_name }}-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 90
+
+      - name: Upload APK to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: myshop-release-${{ steps.version.outputs.version_name }}-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 90
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            android/app/build/outputs/apk/release/app-release.apk
+          name: "MYSHOP ${{ steps.version.outputs.version_name }}"
+          body: |
+            ## MYSHOP v${{ steps.version.outputs.version_name }}
+
+            ### ინსტალაცია
+            გადმოწერეთ APK ფაილი და დააინსტალირეთ Android მოწყობილობაზე.
+
+            ### ცვლილებები
+            იხილეთ [CHANGELOG.md](CHANGELOG.md)
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f android/app/myshop-release.jks

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme — used only for splash / window background before Compose renders -->
+    <style name="Theme.MyShop" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:statusBarColor">#5B21B6</item>
+        <item name="android:navigationBarColor">@android:color/white</item>
+    </style>
+</resources>
