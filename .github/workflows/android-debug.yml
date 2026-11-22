@@ -34,15 +34,10 @@ jobs:
         with:
           gradle-version: "8.9"
 
-      - name: Create local.properties
-        run: |
-          cat > android/local.properties << EOF
-          sdk.dir=/usr/local/lib/android/sdk
-          supabase.url=${{ secrets.SUPABASE_URL }}
-          supabase.anonKey=${{ secrets.SUPABASE_ANON_KEY }}
-          EOF
-
       - name: Build debug APK
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           cd android
           gradle assembleDebug --no-daemon --stacktrace

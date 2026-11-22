@@ -7,6 +7,15 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Config lookup: local.properties (local dev) → environment variable (CI secrets) → fallback.
+// Only the public Supabase anon key is ever read here — never a service-role key.
+val localProps = java.util.Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+fun config(name: String, fallback: String = ""): String =
+    (localProps.getProperty(name) ?: System.getenv(name))?.takeIf { it.isNotBlank() } ?: fallback
+
 android {
     namespace = "ge.myshop.app"
     compileSdk = 35
@@ -15,14 +24,28 @@ android {
         applicationId = "ge.myshop.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = config("VERSION_CODE", "1").toInt()
+        versionName = config("VERSION_NAME", "1.0.0")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Supabase config — injected from local.properties or CI secrets
-        buildConfigField("String", "SUPABASE_URL", "\"${project.findProperty("SUPABASE_URL") ?: "https://your-project.supabase.co"}\"")
-        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${project.findProperty("SUPABASE_ANON_KEY") ?: "your-anon-key"}\"")
+        buildConfigField("String", "SUPABASE_URL", "\"${config("SUPABASE_URL", "https://your-project.supabase.co")}\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"${config("SUPABASE_ANON_KEY", "your-anon-key")}\"")
+    }
+
+    // Release signing — configured via GitHub Secrets in CI (must be declared before buildTypes)
+    val keystorePath = config("KEYSTORE_PATH")
+    val hasReleaseKeystore = keystorePath.isNotEmpty() && file(keystorePath).exists()
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = file(keystorePath)
+                storePassword = config("KEYSTORE_PASSWORD")
+                keyAlias = config("KEY_ALIAS")
+                keyPassword = config("KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -37,17 +60,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.findByName("release")
-        }
-    }
-
-    // Release signing — configured via GitHub Secrets in CI
-    signingConfigs {
-        create("release") {
-            storeFile = file(project.findProperty("KEYSTORE_PATH") ?: "keystore.jks")
-            storePassword = project.findProperty("KEYSTORE_PASSWORD") as String? ?: ""
-            keyAlias = project.findProperty("KEY_ALIAS") as String? ?: ""
-            keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: ""
+            if (hasReleaseKeystore) signingConfig = signingConfigs.getByName("release")
         }
     }
 

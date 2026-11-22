@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shopping bag on the 108dp adaptive-icon canvas (safe zone 66dp centered) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- bag body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,44 L72,44 L75,76 Q75.3,79 72.3,79 L35.7,79 Q32.7,79 33,76 Z" />
+    <!-- handle -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:pathData="M45,48 L45,40 Q45,31 54,31 Q63,31 63,40 L63,48" />
+    <!-- gold accent dot -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,62 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+</vector>
