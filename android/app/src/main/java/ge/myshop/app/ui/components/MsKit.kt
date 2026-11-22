@@ -44,7 +44,6 @@ import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -485,13 +484,12 @@ private fun StepperButton(icon: ImageVector, label: String, enabled: Boolean, on
 fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    iconTint: Color = MsColor.Orange,
+    @androidx.annotation.DrawableRes art: Int? = null,
     actionText: String? = null,
     onAction: (() -> Unit)? = null,
 ) {
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        icon?.let { Icon(it, null, tint = iconTint, modifier = Modifier.size(28.dp)); Spacer(Modifier.width(8.dp)) }
+        art?.let { Art3D(it, Modifier.size(32.dp)); Spacer(Modifier.width(8.dp)) }
         Text(title, style = msText(19.sp, FontWeight.ExtraBold), modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (actionText != null && onAction != null) MsSoftPill(actionText, onAction)
     }
@@ -714,7 +712,7 @@ fun ProductCardSkeleton(modifier: Modifier = Modifier) {
 
 @Composable
 fun EmptyState(
-    icon: ImageVector,
+    @androidx.annotation.DrawableRes art: Int,
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
@@ -726,10 +724,10 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            Modifier.size(108.dp).clip(CircleShape).background(MsBrush.Lavender).border(1.dp, MsColor.Purple200, CircleShape),
+            Modifier.size(132.dp).clip(CircleShape).background(MsBrush.Lavender).border(1.dp, MsColor.Purple200, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, null, tint = MsColor.Purple600, modifier = Modifier.size(52.dp))
+            Art3D(art, Modifier.size(92.dp))
         }
         Spacer(Modifier.height(18.dp))
         Text(title, style = msText(18.sp, FontWeight.ExtraBold), textAlign = TextAlign.Center)
@@ -747,7 +745,7 @@ fun EmptyState(
 @Composable
 fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
     EmptyState(
-        icon = Icons.Rounded.WifiOff,
+        art = ge.myshop.app.R.drawable.td_warning,
         title = "ვერ ჩაიტვირთა",
         subtitle = message,
         actionText = "ხელახლა ცდა",
@@ -760,6 +758,14 @@ fun ErrorState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifi
 fun LoadingState(modifier: Modifier = Modifier) {
     Box(modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(color = MsColor.Purple600, strokeWidth = 3.dp)
+    }
+}
+
+/** 3D art in a soft lavender rounded square (shortcuts, stats, list rows). */
+@Composable
+fun ArtTile(@androidx.annotation.DrawableRes art: Int, modifier: Modifier = Modifier, size: Dp = 48.dp) {
+    Box(modifier.size(size).clip(RoundedCornerShape(size * 0.3f)).background(MsBrush.Lavender), contentAlignment = Alignment.Center) {
+        Art3D(art, Modifier.size(size * 0.74f))
     }
 }
 

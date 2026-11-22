@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.cart
 
+import ge.myshop.app.ui.components.Art3D
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -97,7 +98,7 @@ fun CheckoutScreen(
         when {
             state.isLoading -> LoadingState()
             summary == null || summary.items.isEmpty() -> EmptyState(
-                Icons.Rounded.ShoppingCart,
+                R.drawable.td_cart,
                 "კალათა ცარიელია",
                 subtitle = "შეკვეთისთვის ჯერ დაამატე პროდუქტები",
                 actionText = "მთავარზე დაბრუნება",
@@ -191,7 +192,7 @@ fun CheckoutScreen(
 @Composable
 private fun ReadyBubble() {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Image(painterResource(R.drawable.ill_cart_bags), null, Modifier.size(width = 112.dp, height = 88.dp))
+        Art3D(R.drawable.td_woman_hand, Modifier.size(104.dp))
         Spacer(Modifier.width(8.dp))
         Column(
             Modifier

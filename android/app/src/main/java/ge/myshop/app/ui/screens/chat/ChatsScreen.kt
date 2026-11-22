@@ -1,5 +1,7 @@
 package ge.myshop.app.ui.screens.chat
 
+import ge.myshop.app.ui.components.Art3D
+import ge.myshop.app.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,13 +81,13 @@ fun ChatsScreen(
         }
         when {
             !state.isLoggedIn -> item {
-                EmptyState(Icons.Rounded.Lock, "შედი ანგარიშზე", subtitle = "ჩათი ხელმისაწვდომია შესვლის შემდეგ", actionText = "შესვლა", onAction = app.openLogin)
+                EmptyState(R.drawable.td_lock, "შედი ანგარიშზე", subtitle = "ჩათი ხელმისაწვდომია შესვლის შემდეგ", actionText = "შესვლა", onAction = app.openLogin)
             }
             state.isLoading -> item { LoadingState() }
             state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::load) }
             state.conversations.isEmpty() -> item {
                 EmptyState(
-                    Icons.Rounded.Textsms,
+                    R.drawable.td_chat,
                     "ჯერ მიმოწერა არ გაქვს",
                     subtitle = "შეკვეთის გაგზავნის შემდეგ ადმინისტრატორთან ჩათი აქ გამოჩნდება",
                 )
@@ -103,8 +105,8 @@ private fun ConversationRow(c: Conversation, onClick: () -> Unit, modifier: Modi
     val unread = c.customerUnreadCount
     MsCard(modifier.fillMaxWidth(), onClick = onClick) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(54.dp).clip(CircleShape).background(MsBrush.PrimaryButton), contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.HeadsetMic, null, tint = Color.White, modifier = Modifier.size(28.dp))
+            Box(Modifier.size(56.dp).clip(CircleShape).background(MsBrush.Lavender), contentAlignment = Alignment.BottomCenter) {
+                Art3D(R.drawable.td_admin, Modifier.size(50.dp))
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {

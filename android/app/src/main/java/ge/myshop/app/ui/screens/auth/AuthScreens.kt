@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.auth
 
+import ge.myshop.app.ui.components.Art3D
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -79,7 +80,7 @@ private fun AuthFrame(
                     Spacer(Modifier.height(4.dp))
                     Text(subtitle, style = msText(13.5.sp, FontWeight.Medium, MsColor.InkSoft, lineHeight = 19.sp))
                 }
-                Image(painterResource(R.drawable.ill_bags), null, Modifier.size(width = 96.dp, height = 80.dp))
+                Art3D(R.drawable.td_bags, Modifier.size(92.dp))
             }
             Spacer(Modifier.height(18.dp))
             content()
@@ -164,7 +165,7 @@ fun RegisterScreen(
     if (sentTo != null) {
         AuthFrame("შეამოწმე მეილი", "ანგარიში შეიქმნა", onNavigateBack) {
             EmptyState(
-                Icons.Rounded.Email,
+                R.drawable.td_envelope,
                 "დადასტურების ბმული გაიგზავნა",
                 subtitle = "$sentTo — გახსენი წერილი, დააჭირე ბმულს და შემდეგ შედი ანგარიშზე.",
             )

@@ -1,5 +1,8 @@
 package ge.myshop.app.ui.screens.chat
 
+import ge.myshop.app.ui.components.ArtTile
+import ge.myshop.app.ui.components.Art3D
+import ge.myshop.app.R
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -114,7 +117,7 @@ fun ChatDetailScreen(
                 ) {
                     state.order?.let { o -> item(key = "order") { OrderCard(o, onOpen = { o.id?.let(onNavigateToOrderDetail) }) } }
                     if (state.messages.isEmpty()) item(key = "empty") {
-                        EmptyState(Icons.Rounded.Textsms, "მიწერე ადმინისტრატორს", subtitle = "კითხვები შეკვეთის, მიწოდების ან გადახდის შესახებ")
+                        EmptyState(R.drawable.td_chat, "მიწერე ადმინისტრატორს", subtitle = "კითხვები შეკვეთის, მიწოდების ან გადახდის შესახებ")
                     }
                     items(state.messages, key = { it.id }) { m -> MessageBubble(m) }
                     state.order?.status?.let { status ->
@@ -152,10 +155,10 @@ private fun ChatHeader(subtitle: String, onBack: () -> Unit, onCall: (() -> Unit
             HeaderCircleButton(HeaderAction(Icons.AutoMirrored.Rounded.ArrowBack, "უკან", onClick = onBack))
             Spacer(Modifier.width(10.dp))
             Box(
-                Modifier.size(48.dp).clip(CircleShape).background(Color.White).border(2.dp, MsColor.Gold, CircleShape),
-                contentAlignment = Alignment.Center,
+                Modifier.size(50.dp).clip(CircleShape).background(Color.White).border(2.dp, MsColor.Gold, CircleShape),
+                contentAlignment = Alignment.BottomCenter,
             ) {
-                Icon(Icons.Rounded.HeadsetMic, null, tint = MsColor.Purple600, modifier = Modifier.size(26.dp))
+                Art3D(R.drawable.td_admin, Modifier.size(44.dp))
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
@@ -171,7 +174,7 @@ private fun ChatHeader(subtitle: String, onBack: () -> Unit, onCall: (() -> Unit
 private fun OrderCard(order: OrderRef, onOpen: () -> Unit) {
     MsCard(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconTile(Icons.Rounded.Receipt, size = 48.dp)
+            ArtTile(R.drawable.td_receipt, size = 48.dp)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text("შეკვეთა № ${order.orderNumber ?: ""}", style = msText(15.sp, FontWeight.ExtraBold), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -191,8 +194,8 @@ private fun MessageBubble(m: Message) {
         verticalAlignment = Alignment.Bottom,
     ) {
         if (!mine) {
-            Box(Modifier.size(32.dp).clip(CircleShape).background(MsBrush.PrimaryButton), contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.HeadsetMic, null, tint = Color.White, modifier = Modifier.size(17.dp))
+            Box(Modifier.size(34.dp).clip(CircleShape).background(MsColor.Purple100), contentAlignment = Alignment.BottomCenter) {
+                Art3D(R.drawable.td_admin, Modifier.size(30.dp))
             }
             Spacer(Modifier.width(8.dp))
         }

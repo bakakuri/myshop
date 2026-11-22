@@ -1,5 +1,7 @@
 package ge.myshop.app.ui.screens.catalog
 
+import ge.myshop.app.R
+import ge.myshop.app.ui.components.Art3D
 import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -358,13 +360,13 @@ private fun VariantPicker(product: Product, selectedId: String?, onSelect: (ge.m
 private fun TrustRow() {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(
-            Icons.Rounded.VerifiedUser to "უსაფრთხო\nშეკვეთა",
-            Icons.Rounded.Autorenew to "მარტივი\nდაბრუნება",
-            Icons.Rounded.HeadsetMic to "მხარდაჭერა\nჩათში",
-        ).forEach { (icon, text) ->
+            R.drawable.td_shield to "უსაფრთხო\nშეკვეთა",
+            R.drawable.td_return to "მარტივი\nდაბრუნება",
+            R.drawable.td_chat to "მხარდაჭერა\nჩათში",
+        ).forEach { (art, text) ->
             MsCard(Modifier.weight(1f), shape = MsShape.CardSmall, elevation = 4.dp) {
                 Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(icon, null, tint = MsColor.Purple600, modifier = Modifier.size(26.dp))
+                    Art3D(art, Modifier.size(36.dp))
                     Spacer(Modifier.height(6.dp))
                     Text(text, style = msText(11.sp, FontWeight.Bold, lineHeight = 14.sp), textAlign = TextAlign.Center)
                 }

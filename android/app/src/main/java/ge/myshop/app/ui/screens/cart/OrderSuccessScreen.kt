@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.cart
 
+import ge.myshop.app.ui.components.Art3D
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -109,7 +110,10 @@ fun OrderSuccessScreen(
             }
 
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Image(painterResource(R.drawable.ill_bags), null, Modifier.size(width = 180.dp, height = 150.dp))
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Art3D(R.drawable.td_package, Modifier.size(110.dp))
+                    Art3D(R.drawable.td_party, Modifier.size(140.dp))
+                }
             }
 
             order?.let { o ->

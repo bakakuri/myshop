@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.catalog
 
+import ge.myshop.app.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -178,7 +179,7 @@ fun ProductListScreen(
             }
             state.products.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
                 EmptyState(
-                    Icons.Rounded.Inbox,
+                    R.drawable.td_search,
                     "პროდუქტები ვერ მოიძებნა",
                     subtitle = if (state.activeFilterCount > 0) "სცადე ფილტრის შეცვლა" else "ამ კატეგორიაში ჯერ პროდუქტი არ არის",
                     actionText = if (state.activeFilterCount > 0) "ფილტრის გასუფთავება" else null,

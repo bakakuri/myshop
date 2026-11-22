@@ -139,7 +139,7 @@ fun HomeScreen(
                                 title = "მიტანის სერვისი",
                                 subtitle = "სწრაფი და საიმედო მიწოდება ${store.deliveryEstimate}",
                                 brush = MsBrush.PromoBlue,
-                                illustration = R.drawable.ill_truck,
+                                illustration = R.drawable.td_truck,
                                 cta = "დეტალები",
                                 onClick = { dialog = "მიტანის სერვისი" to deliveryLines },
                                 modifier = Modifier.weight(1f),
@@ -148,7 +148,7 @@ fun HomeScreen(
                                 title = "უსაფრთხო შეკვეთა",
                                 subtitle = "ონლაინ გადახდა არ არის — პირობებს ჩათში შეათანხმებ",
                                 brush = MsBrush.PromoPink,
-                                illustration = R.drawable.ill_shield,
+                                illustration = R.drawable.td_shield,
                                 onClick = {
                                     dialog = "უსაფრთხო შეკვეთა" to listOf(
                                         "აპში ბარათით გადახდა არ ხდება",
@@ -162,11 +162,11 @@ fun HomeScreen(
                         }
                     }
 
-                    productSection("პოპულარული პროდუქტები", Icons.Rounded.Whatshot, MsColor.Orange, state.popular, favorites,
+                    productSection("პოპულარული პროდუქტები", R.drawable.td_fire, state.popular, favorites,
                         onSeeAll = { onNavigateToProductList(null, "პოპულარული") }, viewModel, onNavigateToProductDetail)
-                    productSection("ფასდაკლებები", Icons.Rounded.LocalOffer, MsColor.Pink, state.discounted, favorites,
+                    productSection("ფასდაკლებები", R.drawable.td_label, state.discounted, favorites,
                         onSeeAll = { onNavigateToProductList(null, "ფასდაკლებები") }, viewModel, onNavigateToProductDetail)
-                    productSection("ახალი პროდუქტები", Icons.Rounded.NewReleases, MsColor.Purple500, state.newest, favorites,
+                    productSection("ახალი პროდუქტები", R.drawable.td_sparkles, state.newest, favorites,
                         onSeeAll = { onNavigateToProductList(null, "ახალი") }, viewModel, onNavigateToProductDetail)
                 }
             }
@@ -187,8 +187,7 @@ internal fun Modifier.cardPadding(indexInSection: Int): Modifier =
 
 private fun LazyGridScope.productSection(
     title: String,
-    icon: ImageVector,
-    iconTint: androidx.compose.ui.graphics.Color,
+    @androidx.annotation.DrawableRes art: Int,
     products: List<Product>,
     favorites: Set<String>,
     onSeeAll: () -> Unit,
@@ -199,8 +198,7 @@ private fun LazyGridScope.productSection(
     item(span = { GridItemSpan(maxLineSpan) }, key = "header-$title") {
         SectionHeader(
             title = title,
-            icon = icon,
-            iconTint = iconTint,
+            art = art,
             actionText = "ყველას ნახვა",
             onAction = onSeeAll,
             modifier = Modifier.padding(start = SidePad, end = SidePad, top = 6.dp),

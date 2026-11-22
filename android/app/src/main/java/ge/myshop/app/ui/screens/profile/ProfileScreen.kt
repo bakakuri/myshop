@@ -1,5 +1,7 @@
 package ge.myshop.app.ui.screens.profile
 
+import ge.myshop.app.ui.components.ArtTile
+import ge.myshop.app.ui.components.Art3D
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -110,11 +112,7 @@ fun ProfileScreen(
                 // ── Identity card
                 MsCard(Modifier.fillMaxWidth()) {
                     Box(Modifier.fillMaxWidth()) {
-                        Image(
-                            painterResource(R.drawable.ill_bags),
-                            null,
-                            Modifier.align(Alignment.BottomEnd).offset(x = 10.dp, y = 8.dp).size(width = 120.dp, height = 100.dp),
-                        )
+                        Art3D(R.drawable.td_bags, Modifier.align(Alignment.BottomEnd).offset(x = 8.dp, y = 6.dp).size(112.dp))
                         Column(Modifier.padding(16.dp).padding(end = 70.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Avatar(p?.fullName, p?.avatarUrl)
@@ -143,9 +141,9 @@ fun ProfileScreen(
 
                 // ── Stats
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatCard(Icons.Rounded.Receipt, state.orderCount.toString(), "შეკვეთა", Modifier.weight(1f), onOrdersClick)
-                    StatCard(Icons.Rounded.Favorite, state.favoriteCount.toString(), "რჩეული", Modifier.weight(1f), onFavoritesClick)
-                    StatCard(Icons.Rounded.AccountBalanceWallet, formatGel(state.ordersTotal), "შეკვეთების ჯამი", Modifier.weight(1f), onOrdersClick)
+                    StatCard(R.drawable.td_package, state.orderCount.toString(), "შეკვეთა", Modifier.weight(1f), onOrdersClick)
+                    StatCard(R.drawable.td_heart, state.favoriteCount.toString(), "რჩეული", Modifier.weight(1f), onFavoritesClick)
+                    StatCard(R.drawable.td_money, formatGel(state.ordersTotal), "შეკვეთების ჯამი", Modifier.weight(1f), onOrdersClick)
                 }
 
                 // ── Menu
@@ -244,10 +242,10 @@ private fun InfoLine(icon: ImageVector, text: String) {
 }
 
 @Composable
-private fun StatCard(icon: ImageVector, value: String, label: String, modifier: Modifier, onClick: () -> Unit) {
+private fun StatCard(@androidx.annotation.DrawableRes art: Int, value: String, label: String, modifier: Modifier, onClick: () -> Unit) {
     MsCard(modifier, shape = MsShape.CardSmall, onClick = onClick) {
         Column(Modifier.fillMaxWidth().padding(vertical = 14.dp, horizontal = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            IconTile(icon, size = 42.dp)
+            ArtTile(art, size = 48.dp)
             Spacer(Modifier.height(8.dp))
             Text(value, style = msText(17.sp, FontWeight.ExtraBold, MsColor.Purple800), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(label, style = msText(11.sp, FontWeight.SemiBold, MsColor.InkSoft), textAlign = TextAlign.Center, maxLines = 2)
@@ -259,7 +257,10 @@ private fun StatCard(icon: ImageVector, value: String, label: String, modifier: 
 private fun GuestCard(onLogin: () -> Unit, onRegister: () -> Unit) {
     MsCard(Modifier.padding(14.dp).fillMaxWidth(), contentPadding = PaddingValues(20.dp)) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Image(painterResource(R.drawable.ill_bags), null, Modifier.size(width = 150.dp, height = 125.dp))
+            Row(verticalAlignment = Alignment.Bottom) {
+                Art3D(R.drawable.td_woman_hand, Modifier.size(130.dp))
+                Art3D(R.drawable.td_bags, Modifier.size(70.dp))
+            }
             Spacer(Modifier.height(10.dp))
             Text("კეთილი იყოს შენი მობრძანება!", style = msText(20.sp, FontWeight.ExtraBold), textAlign = TextAlign.Center)
             Spacer(Modifier.height(6.dp))

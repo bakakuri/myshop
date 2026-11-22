@@ -1,5 +1,7 @@
 package ge.myshop.app.ui.screens.profile
 
+import ge.myshop.app.ui.components.ArtTile
+import ge.myshop.app.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -80,7 +82,7 @@ fun AddressesScreen(
             state.isLoading -> item { LoadingState() }
             state.error != null && state.addresses.isEmpty() -> item { ErrorState(state.error!!, onRetry = viewModel::load) }
             state.addresses.isEmpty() -> item {
-                EmptyState(Icons.Rounded.LocationOn, "მისამართი ჯერ არ გაქვს", subtitle = "დაამატე, რომ შეკვეთისას ავტომატურად შეივსოს")
+                EmptyState(R.drawable.td_pin, "მისამართი ჯერ არ გაქვს", subtitle = "დაამატე, რომ შეკვეთისას ავტომატურად შეივსოს")
             }
             else -> items(state.addresses, key = { it.id }) { a ->
                 AddressCard(a, onDelete = { deleting = a }, onMakeDefault = { viewModel.setDefault(a.id) }, modifier = Modifier.padding(horizontal = 14.dp))
@@ -114,7 +116,7 @@ fun AddressesScreen(
 private fun AddressCard(a: Address, onDelete: () -> Unit, onMakeDefault: () -> Unit, modifier: Modifier = Modifier) {
     MsCard(modifier.fillMaxWidth(), border = if (a.isDefault) MsColor.Purple300 else MsColor.CardBorder) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
-            IconTile(if (a.isDefault) Icons.Rounded.Home else Icons.Rounded.LocationOn)
+            ArtTile(if (a.isDefault) R.drawable.td_house else R.drawable.td_pin)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

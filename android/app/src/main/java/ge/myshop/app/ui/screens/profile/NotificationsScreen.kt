@@ -1,5 +1,7 @@
 package ge.myshop.app.ui.screens.profile
 
+import ge.myshop.app.ui.components.ArtTile
+import ge.myshop.app.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,12 +54,13 @@ import ge.myshop.app.ui.components.formatTime
 import ge.myshop.app.ui.components.msText
 import ge.myshop.app.ui.theme.MsColor
 
-private fun iconFor(type: NotificationType): ImageVector = when (type) {
-    NotificationType.ORDER_NEW -> Icons.Rounded.Receipt
-    NotificationType.ORDER_STATUS_UPDATE -> Icons.Rounded.LocalShipping
-    NotificationType.NEW_MESSAGE -> Icons.Rounded.Textsms
-    NotificationType.ANNOUNCEMENT -> Icons.Rounded.Announcement
-    NotificationType.LOW_STOCK -> Icons.Rounded.Warning
+@androidx.annotation.DrawableRes
+private fun artFor(type: NotificationType): Int = when (type) {
+    NotificationType.ORDER_NEW -> R.drawable.td_receipt
+    NotificationType.ORDER_STATUS_UPDATE -> R.drawable.td_truck
+    NotificationType.NEW_MESSAGE -> R.drawable.td_chat
+    NotificationType.ANNOUNCEMENT -> R.drawable.td_megaphone
+    NotificationType.LOW_STOCK -> R.drawable.td_package
 }
 
 @Composable
@@ -82,10 +85,10 @@ fun NotificationsScreen(
             )
         }
         when {
-            !state.isLoggedIn -> item { EmptyState(Icons.Rounded.Lock, "შედი ანგარიშზე", subtitle = "შეტყობინებები ანგარიშზეა მიბმული", actionText = "შესვლა", onAction = app.openLogin) }
+            !state.isLoggedIn -> item { EmptyState(R.drawable.td_lock, "შედი ანგარიშზე", subtitle = "შეტყობინებები ანგარიშზეა მიბმული", actionText = "შესვლა", onAction = app.openLogin) }
             state.isLoading -> item { LoadingState() }
             state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::load) }
-            state.notifications.isEmpty() -> item { EmptyState(Icons.Rounded.Notifications, "შეტყობინებები არ არის", subtitle = "შეკვეთის სტატუსები და ჩათის პასუხები აქ გამოჩნდება") }
+            state.notifications.isEmpty() -> item { EmptyState(R.drawable.td_bell, "შეტყობინებები არ არის", subtitle = "შეკვეთის სტატუსები და ჩათის პასუხები აქ გამოჩნდება") }
             else -> items(state.notifications, key = { it.id }) { n ->
                 NotificationRow(
                     n,
@@ -108,7 +111,7 @@ fun NotificationsScreen(
 private fun NotificationRow(n: AppNotification, onClick: () -> Unit, modifier: Modifier = Modifier) {
     MsCard(modifier.fillMaxWidth(), border = if (n.isRead) MsColor.CardBorder else MsColor.Purple300, onClick = onClick) {
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.Top) {
-            IconTile(iconFor(n.type))
+            ArtTile(artFor(n.type))
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.profile
 
+import ge.myshop.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,13 +55,13 @@ fun FavoritesScreen(
         }
         when {
             !state.isLoggedIn -> item(span = { GridItemSpan(maxLineSpan) }) {
-                EmptyState(Icons.Rounded.Lock, "შედი ანგარიშზე", subtitle = "რჩეულები შენს ანგარიშზე ინახება", actionText = "შესვლა", onAction = app.openLogin)
+                EmptyState(R.drawable.td_lock, "შედი ანგარიშზე", subtitle = "რჩეულები შენს ანგარიშზე ინახება", actionText = "შესვლა", onAction = app.openLogin)
             }
             state.isLoading -> items(4) { i -> ProductCardSkeleton(Modifier.pad(i)) }
             state.error != null -> item(span = { GridItemSpan(maxLineSpan) }) { ErrorState(state.error!!, onRetry = viewModel::load) }
             state.products.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
                 EmptyState(
-                    Icons.Rounded.FavoriteBorder,
+                    R.drawable.td_heart,
                     "რჩეულები ცარიელია",
                     subtitle = "დააჭირე ♡ პროდუქტზე, რომ აქ შეინახო",
                     actionText = "პროდუქტების ნახვა",

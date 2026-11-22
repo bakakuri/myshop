@@ -116,17 +116,9 @@ fun CategoryTile(category: Category, index: Int, onClick: () -> Unit, modifier: 
                     shape = RoundedCornerShape(14.dp),
                 )
             } else {
-                Icon(
-                    categoryIcon(category.slug),
-                    contentDescription = null,
-                    tint = MsColor.Purple600.copy(alpha = 0.9f),
-                    modifier = Modifier.align(Alignment.TopEnd).padding(top = 14.dp, end = 14.dp).size(70.dp),
-                )
-                Icon(
-                    categoryIcon(category.slug),
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.55f),
-                    modifier = Modifier.align(Alignment.TopStart).offset(x = (-14).dp, y = (-10).dp).size(92.dp).rotate(-14f),
+                Art3D(
+                    categoryArt(category.slug),
+                    Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp).size(96.dp).rotate(-6f),
                 )
             }
             Column(Modifier.align(Alignment.BottomStart).padding(start = 14.dp, bottom = 14.dp, end = 56.dp)) {
@@ -157,7 +149,7 @@ fun CategoryShortcut(category: Category, onClick: () -> Unit, modifier: Modifier
             if (!category.imageUrl.isNullOrBlank()) {
                 MsImage(category.imageUrl, null, Modifier.size(58.dp), contentScale = ContentScale.Fit, shape = RoundedCornerShape(12.dp))
             } else {
-                IconTile(categoryIcon(category.slug), size = 58.dp)
+                ArtTile(categoryArt(category.slug), size = 58.dp)
             }
             Spacer(Modifier.height(8.dp))
             Text(category.nameKa, style = msText(11.5.sp, FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -200,11 +192,11 @@ fun HeroBanner(banner: Banner?, onClick: () -> Unit, modifier: Modifier = Modifi
         if (!image.isNullOrBlank()) {
             MsImage(image, title, Modifier.fillMaxSize(), shape = RoundedCornerShape(0.dp))
         } else {
-            // Decorative glow + illustrations
-            Box(Modifier.size(220.dp).offset(x = (-60).dp, y = 20.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.08f)))
-            Image(painterResource(R.drawable.ill_bags), null, Modifier.align(Alignment.BottomStart).padding(start = 10.dp, bottom = 8.dp).size(width = 150.dp, height = 125.dp))
-            Image(painterResource(R.drawable.ill_percent), null, Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 12.dp).size(46.dp).rotate(14f))
-            Image(painterResource(R.drawable.ill_gift), null, Modifier.align(Alignment.BottomEnd).offset(x = 8.dp, y = 10.dp).size(78.dp))
+            // Decorative glow + 3D character with bags (reference 1)
+            Box(Modifier.size(230.dp).offset(x = (-50).dp, y = 10.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.10f)))
+            Art3D(R.drawable.td_woman_hand, Modifier.align(Alignment.BottomStart).offset(x = 2.dp, y = 6.dp).size(150.dp))
+            Art3D(R.drawable.td_bags, Modifier.align(Alignment.BottomStart).offset(x = 104.dp, y = (-4).dp).size(64.dp))
+            Art3D(R.drawable.td_sparkles, Modifier.align(Alignment.TopStart).padding(start = 12.dp, top = 12.dp).size(34.dp))
             Column(
                 Modifier.align(Alignment.CenterEnd).fillMaxWidth(0.58f).padding(end = 18.dp),
             ) {
@@ -239,11 +231,7 @@ fun PromoCard(
             .background(brush)
             .clickable(role = Role.Button, onClick = onClick),
     ) {
-        Image(
-            painterResource(illustration),
-            null,
-            Modifier.align(Alignment.BottomEnd).padding(end = 6.dp, bottom = 10.dp).size(78.dp).alpha(0.96f),
-        )
+        Art3D(illustration, Modifier.align(Alignment.BottomEnd).padding(end = 4.dp, bottom = 6.dp).size(86.dp))
         Column(Modifier.fillMaxHeight().padding(14.dp), verticalArrangement = Arrangement.SpaceBetween) {
             Column {
                 Text(title, style = msText(15.5.sp, FontWeight.ExtraBold, Color.White, lineHeight = 19.sp), maxLines = 2)
@@ -267,8 +255,8 @@ fun FreeDeliveryBanner(threshold: Double, city: String, onClick: () -> Unit, mod
             .background(MsBrush.HeroBanner)
             .clickable(role = Role.Button, onClick = onClick),
     ) {
-        Image(painterResource(R.drawable.ill_bags), null, Modifier.align(Alignment.BottomStart).padding(start = 6.dp, bottom = 6.dp).size(width = 104.dp, height = 88.dp))
-        Image(painterResource(R.drawable.ill_truck), null, Modifier.align(Alignment.TopEnd).padding(top = 10.dp, end = 10.dp).size(width = 96.dp, height = 64.dp))
+        Art3D(R.drawable.td_bags, Modifier.align(Alignment.BottomStart).padding(start = 8.dp, bottom = 6.dp).size(100.dp))
+        Art3D(R.drawable.td_truck, Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 8.dp).size(84.dp))
         Column(Modifier.align(Alignment.CenterStart).padding(start = 118.dp, end = 12.dp)) {
             Text(
                 buildAnnotatedString {
@@ -300,10 +288,10 @@ fun CategoryHeroBanner(title: String, subtitle: String?, iconSlug: String?, onBa
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            Modifier.size(78.dp).clip(RoundedCornerShape(20.dp)).background(Color.White.copy(alpha = 0.14f)),
+            Modifier.size(84.dp).clip(RoundedCornerShape(22.dp)).background(Color.White.copy(alpha = 0.16f)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(iconSlug?.let { categoryIcon(it) } ?: Icons.Rounded.GridView, null, tint = Color.White, modifier = Modifier.size(46.dp))
+            Art3D(if (iconSlug != null) categoryArt(iconSlug) else R.drawable.td_bags, Modifier.size(68.dp))
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {

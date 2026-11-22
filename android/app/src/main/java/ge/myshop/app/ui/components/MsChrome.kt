@@ -80,11 +80,7 @@ import ge.myshop.app.ui.theme.MyShopFont
 @Composable
 fun MyShopLogo(modifier: Modifier = Modifier, showTagline: Boolean = true) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        Image(
-            painter = painterResource(R.drawable.logo_cart),
-            contentDescription = null,
-            modifier = Modifier.size(width = 50.dp, height = 44.dp),
-        )
+        Art3D(R.drawable.td_logo_cart, Modifier.size(54.dp))
         Spacer(Modifier.width(6.dp))
         Column {
             Text(

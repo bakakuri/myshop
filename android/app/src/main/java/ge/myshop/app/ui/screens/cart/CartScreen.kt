@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.cart
 
+import ge.myshop.app.ui.components.Art3D
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -101,7 +102,10 @@ fun CartScreen(
                             Text("კალათა", style = msText(32.sp, FontWeight.ExtraBold, Color.White))
                             Text("შეამოწმე პროდუქტები შეკვეთამდე", style = msText(13.sp, FontWeight.Medium, Color.White.copy(alpha = 0.92f)))
                         }
-                        Image(painterResource(R.drawable.ill_cart_bags), null, Modifier.size(width = 130.dp, height = 102.dp))
+                        Box(Modifier.size(width = 136.dp, height = 104.dp)) {
+                            Art3D(R.drawable.td_bags, Modifier.align(Alignment.TopStart).size(62.dp))
+                            Art3D(R.drawable.td_cart, Modifier.align(Alignment.BottomEnd).size(104.dp))
+                        }
                     }
                 },
             )
@@ -110,7 +114,7 @@ fun CartScreen(
         when {
             !state.isLoggedIn -> item {
                 EmptyState(
-                    Icons.Rounded.Lock,
+                    R.drawable.td_lock,
                     "შედი ანგარიშზე",
                     subtitle = "კალათის სანახავად და შეკვეთისთვის საჭიროა ანგარიში",
                     actionText = "შესვლა",
@@ -121,7 +125,7 @@ fun CartScreen(
             state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::loadCart) }
             state.items.isEmpty() -> item {
                 EmptyState(
-                    Icons.Rounded.ShoppingCart,
+                    R.drawable.td_cart,
                     "კალათა ცარიელია",
                     subtitle = "დაამატე პროდუქტები და აქ გამოჩნდება",
                     actionText = "შოპინგის დაწყება",

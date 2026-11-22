@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.catalog
 
+import ge.myshop.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -80,7 +81,7 @@ fun CategoriesScreen(
                 ErrorState(state.error!!, onRetry = viewModel::load)
             }
             state.categories.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
-                EmptyState(Icons.Rounded.GridView, "კატეგორიები ჯერ არ არის", subtitle = "მალე დაემატება")
+                EmptyState(R.drawable.td_package, "კატეგორიები ჯერ არ არის", subtitle = "მალე დაემატება")
             }
             else -> {
                 itemsIndexed(state.categories, key = { _, c -> c.id }) { i, c ->

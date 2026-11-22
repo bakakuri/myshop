@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.orders
 
+import ge.myshop.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -44,13 +45,13 @@ fun OrderHistoryScreen(
             }
         }
         when {
-            !state.isLoggedIn -> item { EmptyState(Icons.Rounded.Lock, "შედი ანგარიშზე", subtitle = "შეკვეთები ანგარიშზეა მიბმული", actionText = "შესვლა", onAction = app.openLogin) }
+            !state.isLoggedIn -> item { EmptyState(R.drawable.td_lock, "შედი ანგარიშზე", subtitle = "შეკვეთები ანგარიშზეა მიბმული", actionText = "შესვლა", onAction = app.openLogin) }
             state.isLoading -> item { LoadingState() }
             state.error != null -> item { ErrorState(state.error!!, onRetry = viewModel::load) }
             state.orders.isEmpty() -> item {
-                EmptyState(Icons.Rounded.Receipt, "შეკვეთები ჯერ არ გაქვს", subtitle = "პირველი შეკვეთის შემდეგ აქ ნახავ სტატუსს", actionText = "შოპინგის დაწყება", onAction = onStartShopping)
+                EmptyState(R.drawable.td_receipt, "შეკვეთები ჯერ არ გაქვს", subtitle = "პირველი შეკვეთის შემდეგ აქ ნახავ სტატუსს", actionText = "შოპინგის დაწყება", onAction = onStartShopping)
             }
-            state.visible.isEmpty() -> item { EmptyState(Icons.Rounded.Receipt, "ამ ფილტრით შეკვეთა არ არის") }
+            state.visible.isEmpty() -> item { EmptyState(R.drawable.td_receipt, "ამ ფილტრით შეკვეთა არ არის") }
             else -> items(state.visible, key = { it.id }) { o ->
                 OrderSummaryCard(o, onClick = { onOrderClick(o.id) }, modifier = Modifier.padding(horizontal = 14.dp))
             }

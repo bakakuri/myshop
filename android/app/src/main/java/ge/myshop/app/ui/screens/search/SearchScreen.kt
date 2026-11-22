@@ -1,5 +1,6 @@
 package ge.myshop.app.ui.screens.search
 
+import ge.myshop.app.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -96,13 +97,13 @@ fun SearchScreen(
                     }
                 }
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    EmptyState(Icons.Rounded.Search, "რას ეძებ?", subtitle = "ჩაწერე პროდუქტის ან ბრენდის სახელი")
+                    EmptyState(R.drawable.td_search, "რას ეძებ?", subtitle = "ჩაწერე პროდუქტის ან ბრენდის სახელი")
                 }
             }
             state.isLoading -> items(4) { i -> ProductCardSkeleton(Modifier.pad(i)) }
             state.error != null -> item(span = { GridItemSpan(maxLineSpan) }) { ErrorState(state.error!!, onRetry = viewModel::submit) }
             state.searched && state.results.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
-                EmptyState(Icons.Rounded.Search, "„${state.query}“ ვერ მოიძებნა", subtitle = "სცადე სხვა სიტყვა ან კატეგორია")
+                EmptyState(R.drawable.td_search, "„${state.query}“ ვერ მოიძებნა", subtitle = "სცადე სხვა სიტყვა ან კატეგორია")
             }
             else -> {
                 if (state.results.isNotEmpty()) item(span = { GridItemSpan(maxLineSpan) }) {
