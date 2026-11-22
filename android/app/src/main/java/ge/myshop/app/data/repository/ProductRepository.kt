@@ -23,9 +23,9 @@ class ProductRepository @Inject constructor(
                 .from("categories")
                 .select(Columns.ALL) {
                     filter {
-                        eq("is_active", true)
+                        eq("is_visible", true)
                         if (parentId == null) {
-                            isNull("parent_id")
+                            exact("parent_id", null)
                         } else {
                             eq("parent_id", parentId)
                         }
@@ -69,7 +69,7 @@ class ProductRepository @Inject constructor(
                         filter.minPrice?.let { gte("price", it) }
                         filter.maxPrice?.let { lte("price", it) }
                         if (filter.inStockOnly) gt("stock_quantity", 0)
-                        if (filter.hasDiscount) not("compare_at_price", "is", null)
+                        if (filter.hasDiscount) gt("previous_price", 0)
                         filter.query?.let { ilike("name_ka", "%$it%") }
                     }
                     when (filter.sortBy) {
@@ -131,7 +131,7 @@ class ProductRepository @Inject constructor(
                 .select(Columns.raw("*, images:product_images(*)")) {
                     filter {
                         eq("is_published", true)
-                        not("compare_at_price", "is", null)
+                        gt("previous_price", 0)
                         gt("stock_quantity", 0)
                     }
                     order("created_at", Order.DESCENDING)
@@ -183,8 +183,8 @@ class ProductRepository @Inject constructor(
                     filter { eq("product_id", productId) }
                     limit(limit.toLong())
                 }
-                .decodeList<Map<String, Product>>()
-                .mapNotNull { it["related_product"] }
+                .decodeList<RelatedProductRow>()
+                .mapNotNull { it.product }
         }
     }
 
@@ -193,12 +193,20 @@ class ProductRepository @Inject constructor(
             supabase.postgrest
                 .from("product_reviews")
                 .select(
-                    Columns.raw("*, reviewer_name:profiles!user_id(full_name)")
+                    Columns.raw("*, reviewer:profiles!user_id(full_name)")
                 ) {
-                    filter { eq("product_id", productId) }
+                    filter {
+                        eq("product_id", productId)
+                        eq("is_published", true)
+                    }
                     order("created_at", Order.DESCENDING)
                 }
                 .decodeList<ProductReview>()
         }
     }
 }
+
+@kotlinx.serialization.Serializable
+private data class RelatedProductRow(
+    @kotlinx.serialization.SerialName("related_product") val product: Product? = null,
+)

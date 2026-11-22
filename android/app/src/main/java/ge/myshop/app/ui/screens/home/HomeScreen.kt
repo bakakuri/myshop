@@ -75,7 +75,7 @@ fun HomeScreen(
             notificationCount = uiState.notificationCount,
             onSearchClick = onNavigateToSearch,
             onCartClick = onNavigateToCart,
-            onNotificationClick = onNavigateToNotifications,
+            onNotificationsClick = onNavigateToNotifications,
         )
 
         if (uiState.error != null) {
@@ -284,7 +284,7 @@ private fun BannerItem(banner: Banner) {
             .clip(BannerShape),
     ) {
         AsyncImage(
-            model = banner.imageUrl,
+            model = banner.displayImage,
             contentDescription = banner.titleKa,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),

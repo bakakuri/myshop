@@ -2,11 +2,9 @@ package ge.myshop.app.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import ge.myshop.app.R
 
 // ============================================================
 // MYSHOP Typography — Georgian-first font system
@@ -14,15 +12,9 @@ import ge.myshop.app.R
 // Fallback: system default
 // ============================================================
 
-// Font family with Georgian support
-// Fonts are loaded from res/font/
-val MyShopFontFamily = FontFamily(
-    Font(R.font.firago_regular, FontWeight.Normal),
-    Font(R.font.firago_medium, FontWeight.Medium),
-    Font(R.font.firago_semibold, FontWeight.SemiBold),
-    Font(R.font.firago_bold, FontWeight.Bold),
-    Font(R.font.firago_extrabold, FontWeight.ExtraBold),
-)
+// Font family — system default (Noto Sans Georgian ships with Android and covers Georgian glyphs).
+// To use FiraGO later: add .ttf files to res/font/ and switch back to a FontFamily(Font(R.font...)).
+val MyShopFontFamily: FontFamily = FontFamily.Default
 
 val MyShopTypography = Typography(
     // Display — large hero text

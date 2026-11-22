@@ -69,8 +69,8 @@ private fun NotificationCard(notif: AppNotification, onRead: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(notif.title, style = MaterialTheme.typography.bodyMedium, fontWeight = if (!notif.isRead) FontWeight.Bold else FontWeight.Normal)
-                notif.body?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline) }
+                Text(notif.titleKa, style = MaterialTheme.typography.bodyMedium, fontWeight = if (!notif.isRead) FontWeight.Bold else FontWeight.Normal)
+                notif.bodyKa?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline) }
                 Text(notif.createdAt.substringBefore("T"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
             }
             if (!notif.isRead) {

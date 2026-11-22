@@ -13,7 +13,9 @@ import io.github.jan.supabase.auth.FlowType
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
+import io.github.jan.supabase.serializer.KotlinXSerializer
 import io.github.jan.supabase.storage.Storage
+import kotlinx.serialization.json.Json
 import javax.inject.Singleton
 
 @Module
@@ -27,6 +29,12 @@ object SupabaseModule {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY,
         ) {
+            // Tolerate extra DB columns and nulls so a schema addition never crashes the app
+            defaultSerializer = KotlinXSerializer(Json {
+                ignoreUnknownKeys = true
+                coerceInputValues = true
+                explicitNulls = false
+            })
             install(Auth) {
                 flowType = FlowType.PKCE
                 // Scheme defined in AndroidManifest intent filter

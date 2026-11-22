@@ -15,6 +15,7 @@ import kotlinx.serialization.json.put
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import ge.myshop.app.domain.model.CreateOrderResult
 
 @Singleton
 class OrderRepository @Inject constructor(
@@ -31,7 +32,7 @@ class OrderRepository @Inject constructor(
         deliveryNotes: String? = null,
         customerNote: String? = null,
         items: List<CreateOrderItem>,
-    ): Result<Order> {
+    ): Result<CreateOrderResult> {
         return runCatching {
             val idempotencyKey = UUID.randomUUID().toString()
             val params = buildJsonObject {
@@ -47,7 +48,7 @@ class OrderRepository @Inject constructor(
             }
             supabase.postgrest
                 .rpc("create_order", params)
-                .decodeAs<Order>()
+                .decodeAs<CreateOrderResult>()
         }
     }
 
@@ -80,7 +81,8 @@ class OrderRepository @Inject constructor(
                         """
                         *,
                         items:order_items(*),
-                        statusHistory:order_status_history(*)
+                        statusHistory:order_status_history(*),
+                        conversations(id)
                         """.trimIndent()
                     )
                 ) {
@@ -95,7 +97,7 @@ class OrderRepository @Inject constructor(
             supabase.postgrest
                 .from("orders")
                 .select(
-                    Columns.raw("*, items:order_items(*), statusHistory:order_status_history(*)")
+                    Columns.raw("*, items:order_items(*), statusHistory:order_status_history(*), conversations(id)")
                 ) {
                     filter { eq("order_number", orderNumber) }
                 }

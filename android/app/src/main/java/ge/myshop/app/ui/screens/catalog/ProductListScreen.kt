@@ -97,7 +97,7 @@ fun ProductListScreen(
                     ProductCard(
                         product = product,
                         onClick = { onProductClick(product.id) },
-                        onFavoriteClick = { viewModel.toggleFavorite(product.id) },
+                        onFavoriteToggle = { viewModel.toggleFavorite(it) },
                     )
                 }
             }

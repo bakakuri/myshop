@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.ShoppingCartCheckout
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledIconButtonDefaults
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -62,7 +62,7 @@ fun CartScreen(
         bottomBar = {
             if (uiState.cartSummary != null && uiState.cartSummary!!.items.isNotEmpty()) {
                 CartBottomBar(
-                    subtotal = uiState.cartSummary!!.total,
+                    subtotal = uiState.cartSummary!!.subtotal,
                     itemCount = uiState.cartSummary!!.itemCount,
                     onCheckout = onCheckoutClick,
                 )
@@ -85,11 +85,11 @@ fun CartScreen(
                 modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
             ) {
                 item { Spacer(Modifier.height(8.dp)) }
-                items(summary.items, key = { it.id }) { item ->
+                items(summary.items, key = { it.cartItemId }) { item ->
                     CartItemCard(
                         item = item,
-                        onRemove = { viewModel.removeItem(item.id) },
-                        onQuantityChange = { newQty -> viewModel.updateQuantity(item.id, item.productId, item.variantId, newQty) },
+                        onRemove = { viewModel.removeItem(item.cartItemId) },
+                        onQuantityChange = { newQty -> viewModel.updateQuantity(item.cartItemId, item.productId, item.variantId, newQty) },
                     )
                 }
                 item { Spacer(Modifier.height(100.dp)) }
@@ -116,16 +116,16 @@ private fun CartItemCard(
         ) {
             AsyncImage(
                 model = item.imageUrl,
-                contentDescription = item.productName,
+                contentDescription = item.productNameKa,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(72.dp).clip(ProductImageShape),
             )
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(item.productName, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                if (!item.variantLabel.isNullOrBlank()) {
-                    Text(item.variantLabel!!, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
+                Text(item.productNameKa, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 2)
+                if (!item.variantNameKa.isNullOrBlank()) {
+                    Text(item.variantNameKa!!, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
                 }
-                PriceDisplay(price = item.price, modifier = Modifier)
+                PriceDisplay(price = item.unitPrice, modifier = Modifier)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
@@ -136,13 +136,13 @@ private fun CartItemCard(
                     FilledIconButton(
                         onClick = { if (item.quantity > 1) onQuantityChange(item.quantity - 1) else onRemove() },
                         modifier = Modifier.size(28.dp),
-                        colors = FilledIconButtonDefaults.filledIconButtonColors(containerColor = PrimaryPurple.copy(alpha = 0.1f)),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = PrimaryPurple.copy(alpha = 0.1f)),
                     ) { Icon(Icons.Filled.Remove, contentDescription = null, tint = PrimaryPurple, modifier = Modifier.size(14.dp)) }
                     Text(item.quantity.toString(), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, modifier = Modifier.width(24.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     FilledIconButton(
                         onClick = { onQuantityChange(item.quantity + 1) },
                         modifier = Modifier.size(28.dp),
-                        colors = FilledIconButtonDefaults.filledIconButtonColors(containerColor = PrimaryPurple),
+                        colors = IconButtonDefaults.filledIconButtonColors(containerColor = PrimaryPurple),
                     ) { Icon(Icons.Filled.Add, contentDescription = null, tint = androidx.compose.ui.graphics.Color.White, modifier = Modifier.size(14.dp)) }
                 }
             }

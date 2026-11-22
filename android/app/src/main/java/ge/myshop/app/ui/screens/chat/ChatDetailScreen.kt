@@ -145,7 +145,7 @@ fun ChatDetailScreen(
 @Composable
 private fun MessageBubble(message: Message) {
     val isCustomer = message.senderType == MessageSender.CUSTOMER
-    val isSystem = message.senderType == MessageSender.SYSTEM
+    val isSystem = false // DB has only customer/staff senders
 
     if (isSystem) {
         Box(

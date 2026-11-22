@@ -124,13 +124,6 @@ private fun CategoryGridCard(category: Category, onClick: () -> Unit) {
                     color = if (category.imageUrl != null) Color.White else PrimaryPurple,
                     textAlign = TextAlign.Start,
                 )
-                if (category.productCount != null && category.productCount!! > 0) {
-                    Text(
-                        text = "${category.productCount} პროდუქტი",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (category.imageUrl != null) Color.White.copy(alpha = 0.8f) else Color.Gray,
-                    )
-                }
             }
         }
     }

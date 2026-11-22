@@ -46,7 +46,7 @@ fun EditProfileScreen(
 
     LaunchedEffect(uiState.profile) {
         uiState.profile?.let {
-            if (name.isBlank()) name = it.fullName
+            if (name.isBlank()) name = it.fullName ?: ""
             if (phone.isBlank()) phone = it.phone ?: ""
         }
     }

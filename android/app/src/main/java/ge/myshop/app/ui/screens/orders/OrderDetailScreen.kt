@@ -118,15 +118,15 @@ private fun OrderItemRow(item: OrderItem) {
         if (!item.imageUrl.isNullOrBlank()) {
             AsyncImage(
                 model = item.imageUrl,
-                contentDescription = item.productNameSnapshot,
+                contentDescription = item.productNameKa,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(48.dp).clip(ProductImageShape),
             )
         }
         Column(Modifier.weight(1f)) {
-            Text(item.productNameSnapshot, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+            Text(item.productNameKa, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
             Text("× ${item.quantity}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.outline)
         }
-        Text("₾${"%.2f".format(item.unitPriceSnapshot * item.quantity)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = PrimaryPurple)
+        Text("₾${"%.2f".format(item.lineTotal)}", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = PrimaryPurple)
     }
 }

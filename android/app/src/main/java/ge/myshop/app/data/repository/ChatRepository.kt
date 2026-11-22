@@ -17,6 +17,10 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
 import javax.inject.Singleton
+import io.github.jan.supabase.postgrest.query.filter.FilterOperator
+import io.github.jan.supabase.realtime.PostgresAction
+import io.github.jan.supabase.realtime.decodeRecord
+import io.github.jan.supabase.postgrest.query.Count
 
 @Singleton
 class ChatRepository @Inject constructor(
@@ -36,7 +40,8 @@ class ChatRepository @Inject constructor(
                     Columns.raw(
                         """
                         *,
-                        order_number:orders!order_id(order_number),
+                        order:orders!order_id(order_number, status),
+                        messages(id, conversation_id, sender_type, content, is_read, is_internal_note, created_at),
                         participants:conversation_participants!inner(user_id)
                         """.trimIndent()
                     )
@@ -44,7 +49,7 @@ class ChatRepository @Inject constructor(
                     filter {
                         eq("participants.user_id", userId)
                     }
-                    order("last_message_at", Order.DESCENDING, nullsFirst = false)
+                    order("updated_at", Order.DESCENDING)
                 }
                 .decodeList<Conversation>()
         }
@@ -70,7 +75,7 @@ class ChatRepository @Inject constructor(
                     Columns.raw(
                         """
                         *,
-                        sender_name:profiles!sender_id(full_name),
+                        sender:profiles!sender_id(full_name, avatar_url),
                         attachments:message_attachments(*)
                         """.trimIndent()
                     )
@@ -122,17 +127,18 @@ class ChatRepository @Inject constructor(
         activeChannel = channel
 
         // Listen for new inserts in messages table for this conversation
-        val changeFlow = channel.postgresChangeFlow<Message>(schema = "public") {
+        val changeFlow = channel.postgresChangeFlow<PostgresAction.Insert>(schema = "public") {
             table = "messages"
-            filter = "conversation_id=eq.$conversationId"
+            filter("conversation_id", FilterOperator.EQ, conversationId)
         }
 
         channel.subscribe()
 
         changeFlow.collect { change ->
-            // Only emit non-internal notes to customers
-            if (!change.isInternalNote) {
-                emit(change)
+            val message = change.decodeRecord<Message>()
+            // RLS already hides internal notes from customers; double-check client-side
+            if (!message.isInternalNote) {
+                emit(message)
             }
         }
     }
@@ -147,7 +153,8 @@ class ChatRepository @Inject constructor(
             val userId = supabase.auth.currentUserOrNull()?.id ?: error("Not authenticated")
             supabase.postgrest
                 .from("messages")
-                .select(Columns.raw("count")) {
+                .select(Columns.raw("id")) {
+                    count(Count.EXACT)
                     filter {
                         eq("is_read", false)
                         eq("is_internal_note", false)
@@ -155,8 +162,7 @@ class ChatRepository @Inject constructor(
                         // Participant check handled by RLS
                     }
                 }
-                .decodeAs<Long>()
-                .toInt()
+                .countOrNull()?.toInt() ?: 0
         }
     }
 }

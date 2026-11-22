@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import ge.myshop.app.ui.theme.AccentGold
 import ge.myshop.app.ui.theme.BadgeShape
 import ge.myshop.app.ui.theme.PillShape
@@ -353,6 +354,41 @@ fun EmptyState(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+            )
+        }
+        action?.let { (label, onClick) ->
+            MyShopButton(text = label, onClick = onClick)
+        }
+    }
+}
+
+/** Emoji variant used by most screens: `EmptyState(icon = "🛒", title = ...)`. */
+@Composable
+fun EmptyState(
+    icon: String,
+    title: String,
+    subtitle: String = "",
+    action: Pair<String, () -> Unit>? = null,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth().padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(text = icon, fontSize = 64.sp)
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
+            textAlign = TextAlign.Center,
+        )
+        if (subtitle.isNotEmpty()) {
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                textAlign = TextAlign.Center,
             )
         }
         action?.let { (label, onClick) ->

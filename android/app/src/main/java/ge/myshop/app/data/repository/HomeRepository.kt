@@ -12,6 +12,7 @@ import io.github.jan.supabase.postgrest.query.Columns
 import io.github.jan.supabase.postgrest.query.Order
 import javax.inject.Inject
 import javax.inject.Singleton
+import io.github.jan.supabase.postgrest.query.Count
 
 @Singleton
 class HomeRepository @Inject constructor(
@@ -35,7 +36,7 @@ class HomeRepository @Inject constructor(
             supabase.postgrest
                 .from("home_sections")
                 .select(Columns.ALL) {
-                    filter { eq("is_active", true) }
+                    filter { eq("is_enabled", true) }
                     order("sort_order", Order.ASCENDING)
                 }
                 .decodeList<HomeSection>()
@@ -85,14 +86,14 @@ class HomeRepository @Inject constructor(
             val userId = supabase.auth.currentUserOrNull()?.id ?: return@runCatching 0
             supabase.postgrest
                 .from("notifications")
-                .select(Columns.raw("count")) {
+                .select(Columns.raw("id")) {
+                    count(Count.EXACT)
                     filter {
                         eq("user_id", userId)
                         eq("is_read", false)
                     }
                 }
-                .decodeAs<Long>()
-                .toInt()
+                .countOrNull()?.toInt() ?: 0
         }
     }
 }

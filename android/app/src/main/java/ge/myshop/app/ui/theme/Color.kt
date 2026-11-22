@@ -63,6 +63,10 @@ val CategoryPastelYellow = Color(0xFFFEF9C3)
 val CategoryPastelMint = Color(0xFFD1FAE5)
 val CategoryPastelBlue = Color(0xFFDBEAFE)
 val CategoryPastelPeach = Color(0xFFFFEDD5)
+val CategoryPastelPurple = CategoryPastelLavender
+val CategoryPastelGreen = CategoryPastelMint
+val CategoryPastelOrange = CategoryPastelPeach
+val SurfaceVariant = SurfaceLavenderTint
 
 val categoryPastels = listOf(
     CategoryPastelLavender,

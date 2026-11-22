@@ -106,7 +106,7 @@ class CheckoutViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isPlacing = false,
-                            event = CheckoutEvent.OrderPlaced(order.id),
+                            event = CheckoutEvent.OrderPlaced(order.orderId),
                         )
                     }
                 },

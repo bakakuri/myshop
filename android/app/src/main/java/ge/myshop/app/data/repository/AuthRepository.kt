@@ -85,6 +85,7 @@ class AuthRepository @Inject constructor(
                     filter { eq("id", userId) }
                 }
                 .decodeSingle<UserProfile>()
+                .copy(email = currentUser?.email) // email lives in auth.users, not profiles
         }
     }
 

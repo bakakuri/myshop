@@ -37,11 +37,12 @@ fun NavGraph(
         // ── Home ──────────────────────────────────────────────
         composable(Screen.Home.route) {
             HomeScreen(
-                onProductClick = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
-                onCategoryClick = { id, name -> navController.navigate(Screen.ProductList.createRoute(id, name)) },
-                onSearchClick = { navController.navigate(Screen.Search.route) },
-                onCartClick = { navController.navigate(Screen.Cart.route) },
-                onNotificationsClick = { navController.navigate(Screen.Notifications.route) },
+                onNavigateToCategories = { navController.navigate(Screen.Categories.route) },
+                onNavigateToProductDetail = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
+                onNavigateToProductList = { id, title -> navController.navigate(Screen.ProductList.createRoute(id, title)) },
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
+                onNavigateToCart = { navController.navigate(Screen.Cart.route) },
             )
         }
 
@@ -77,10 +78,12 @@ fun NavGraph(
         composable(
             route = Screen.ProductDetail.route,
             arguments = listOf(navArgument("productId") { type = NavType.StringType }),
-        ) {
+        ) { backStack ->
             ProductDetailScreen(
+                productId = backStack.arguments?.getString("productId") ?: "",
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCart = { navController.navigate(Screen.Cart.route) },
+                onNavigateToProductDetail = { id -> navController.navigate(Screen.ProductDetail.createRoute(id)) },
                 onNavigateToLogin = { navController.navigate(Screen.Login.route) },
             )
         }
@@ -106,7 +109,7 @@ fun NavGraph(
         composable(Screen.Checkout.route) {
             CheckoutScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onOrderSuccess = { orderId ->
+                onOrderPlaced = { orderId ->
                     navController.navigate(Screen.OrderSuccess.createRoute(orderId)) {
                         popUpTo(Screen.Cart.route) { inclusive = true }
                     }
@@ -142,9 +145,11 @@ fun NavGraph(
         composable(
             route = Screen.ChatDetail.route,
             arguments = listOf(navArgument("conversationId") { type = NavType.StringType }),
-        ) {
+        ) { backStack ->
             ChatDetailScreen(
+                conversationId = backStack.arguments?.getString("conversationId") ?: "",
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToOrderDetail = { id -> navController.navigate(Screen.OrderDetail.createRoute(id)) },
             )
         }
 

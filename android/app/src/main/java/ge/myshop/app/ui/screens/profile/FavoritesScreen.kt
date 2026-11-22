@@ -49,7 +49,7 @@ fun FavoritesScreen(
                     ProductCard(
                         product = product,
                         onClick = { onProductClick(product.id) },
-                        onFavoriteClick = { viewModel.toggleFavorite(product.id) },
+                        onFavoriteToggle = { viewModel.toggleFavorite(it) },
                         isFavorite = true,
                     )
                 }

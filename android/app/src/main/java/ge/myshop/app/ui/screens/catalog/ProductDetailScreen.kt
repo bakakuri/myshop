@@ -196,7 +196,7 @@ fun ProductDetailScreen(
             // Image gallery
             item {
                 ImageGallery(
-                    images = product.images.map { it.imageUrl },
+                    images = product.allImages,
                     hasDiscount = product.hasDiscount,
                     discountPercent = product.discountPercent,
                 )
@@ -218,8 +218,8 @@ fun ProductDetailScreen(
                     }
 
                     PriceDisplay(
-                        price = uiState.selectedVariant?.price ?: product.price,
-                        compareAtPrice = uiState.selectedVariant?.compareAtPrice ?: product.compareAtPrice,
+                        price = product.price + (uiState.selectedVariant?.priceAdjustment ?: 0.0),
+                        compareAtPrice = product.compareAtPrice?.let { it + (uiState.selectedVariant?.priceAdjustment ?: 0.0) },
                         priceFontSize = 24,
                     )
 

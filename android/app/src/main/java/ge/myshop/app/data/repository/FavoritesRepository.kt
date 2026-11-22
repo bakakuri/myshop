@@ -10,6 +10,8 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
 import javax.inject.Singleton
+import ge.myshop.app.domain.model.ToggleFavoriteResult
+import io.github.jan.supabase.postgrest.query.Count
 
 @Singleton
 class FavoritesRepository @Inject constructor(
@@ -32,10 +34,11 @@ class FavoritesRepository @Inject constructor(
     suspend fun toggleFavorite(productId: String): Result<Boolean> {
         return runCatching {
             val params = buildJsonObject { put("p_product_id", productId) }
-            // RPC returns true if added, false if removed
+            // RPC returns {"favorited": true|false}
             supabase.postgrest
                 .rpc("toggle_favorite", params)
-                .decodeAs<Boolean>()
+                .decodeAs<ToggleFavoriteResult>()
+                .favorited
         }
     }
 
@@ -44,13 +47,14 @@ class FavoritesRepository @Inject constructor(
             val userId = supabase.auth.currentUserOrNull()?.id ?: return@runCatching false
             val count = supabase.postgrest
                 .from("favorites")
-                .select(Columns.raw("count")) {
+                .select(Columns.raw("id")) {
+                    count(Count.EXACT)
                     filter {
                         eq("user_id", userId)
                         eq("product_id", productId)
                     }
                 }
-                .decodeAs<Long>()
+                .countOrNull() ?: 0L
             count > 0L
         }
     }

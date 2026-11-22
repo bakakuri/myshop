@@ -119,7 +119,7 @@ private fun ConversationItem(conversation: Conversation, onClick: () -> Unit) {
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = conversation.lastMessage ?: "ჩატი",
+                    text = conversation.lastMessage?.content ?: "ჩატი",
                     style = MaterialTheme.typography.bodySmall,
                     color = if (conversation.customerUnreadCount > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
                     maxLines = 1,

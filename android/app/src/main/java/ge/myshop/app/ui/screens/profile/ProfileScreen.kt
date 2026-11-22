@@ -88,14 +88,14 @@ fun ProfileScreen(
                 ) {
                     Surface(Modifier.size(80.dp).clip(CircleShape), color = PrimaryPurple) {
                         Text(
-                            text = profile.fullName.firstOrNull()?.uppercase() ?: "U",
+                            text = profile.fullName?.firstOrNull()?.uppercase() ?: "U",
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(20.dp),
                         )
                     }
-                    Text(profile.fullName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(profile.fullName ?: "მომხმარებელი", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(profile.email ?: "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.outline)
                     MyShopOutlinedButton(text = "პროფილის რედაქტირება", onClick = onEditProfileClick, modifier = Modifier.fillMaxWidth())
                 }
