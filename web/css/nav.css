@@ -1,25 +1,28 @@
-/* ── Bottom Navigation — exact from design ── */
+/* ── Bottom Navigation ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 430px;
   background: var(--white); border-top: 1px solid #e8e0f8;
   display: flex; height: 64px; z-index: 1000;
 }
-.bnav-item {
+.nav-btn {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 3px; cursor: pointer; color: #9D7FE0;
   font-size: 10px; font-weight: 600;
   transition: color .2s; position: relative;
+  background: none; border: none;
 }
-.bnav-item.active { color: var(--purple); }
-.bnav-item.active::before {
+.nav-btn.active { color: var(--purple); }
+.nav-btn.active::before {
   content: ''; position: absolute; top: 0; left: 50%;
   transform: translateX(-50%);
   width: 36px; height: 3px;
   background: var(--purple); border-radius: 0 0 3px 3px;
 }
-.bnav-badge {
+.nav-icon { font-size: 20px; line-height: 1; }
+.nav-label { font-size: 10px; font-weight: 600; }
+.cart-badge {
   position: absolute; top: 8px; right: calc(50% - 18px);
   background: var(--gold); color: var(--purple-dark);
   font-size: 9px; font-weight: 900; min-width: 16px; height: 16px;
@@ -28,31 +31,32 @@
 }
 
 /* ── Side Menu ── */
-.side-bg {
+.side-overlay {
   position: fixed; inset: 0; z-index: 1100;
   background: rgba(0,0,0,0.6); opacity: 0;
   pointer-events: none; transition: opacity .3s;
 }
-.side-bg.on { opacity: 1; pointer-events: all; }
+.side-overlay.open { opacity: 1; pointer-events: all; }
 
-.side-panel {
+.side-menu {
   position: fixed; top: 0; left: 0;
   width: 280px; height: 100%; z-index: 1101;
   background: var(--purple-dark);
   transform: translateX(-100%); transition: transform .3s;
   overflow-y: auto;
 }
-.side-panel.on { transform: translateX(0); }
+.side-menu.open { transform: translateX(0); }
 
-.side-top {
+.side-hdr {
   background: rgba(255,255,255,0.1); padding: 20px 16px 16px;
   display: flex; align-items: center; justify-content: space-between;
 }
 .side-logo { font-size: 20px; font-weight: 900; color: var(--gold); }
-.side-x {
+.side-close {
   background: rgba(255,255,255,0.15); border-radius: 50%;
   width: 34px; height: 34px; display: flex; align-items: center;
   justify-content: center; color: #fff; font-size: 18px;
+  border: none; cursor: pointer;
 }
 .side-user {
   padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.1);
@@ -66,12 +70,25 @@
 }
 .side-uname  { font-weight: 800; color: #fff; font-size: 14px; }
 .side-uemail { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
-.side-nav    { padding: 8px 0; }
-.side-item {
+.side-links  { padding: 8px 0; }
+.side-link {
   display: flex; align-items: center; gap: 12px;
   padding: 14px 16px; color: rgba(255,255,255,0.85);
   font-size: 14px; font-weight: 600; cursor: pointer; transition: background .2s;
+  background: none; border: none; width: 100%; text-align: left;
 }
-.side-item:hover, .side-item.active { background: rgba(255,255,255,0.1); color: #fff; }
-.side-item.active span { color: var(--gold); }
+.side-link:hover, .side-link.active { background: rgba(255,255,255,0.1); color: #fff; }
+.side-link.active span { color: var(--gold); }
 .side-sep { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 16px; }
+.side-promo {
+  margin: 12px 16px; border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--purple), var(--purple-light));
+  padding: 14px; border: 1px solid rgba(255,255,255,0.15);
+}
+.side-promo-title { font-size: 13px; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
+.side-promo-sub   { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.4; margin-bottom: 10px; }
+.side-promo-btn {
+  display: inline-block; background: var(--gold); color: var(--purple-dark);
+  padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 900;
+  border: none; cursor: pointer;
+}

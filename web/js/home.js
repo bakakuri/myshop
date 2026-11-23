@@ -25,14 +25,15 @@ function renderSlider() {
     const slide = el('div', 'slide');
     slide.style.background = s.bg;
     slide.innerHTML = `
-      <div class="slide-emoji">${s.emoji}</div>
-      <div class="slide-text">
+      <div class="slide-left">
+        <div class="slide-tag">🔥 MyShop</div>
         <h2 class="slide-title">${s.title.replace('\n', '<br>')}</h2>
-        <p class="slide-sub">${s.sub}</p>
-        <button class="slide-cta">${s.cta}</button>
-      </div>`;
+        <p class="slide-sub" style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:4px">${s.sub}</p>
+        <button class="slide-btn">${s.cta}</button>
+      </div>
+      <div class="slide-char">${s.emoji}</div>`;
     wrap.appendChild(slide);
-    const dot = el('button', `dot ${i === 0 ? 'on' : ''}`);
+    const dot = el('button', `dot${i === 0 ? ' active' : ''}`);
     dot.addEventListener('click', () => goSlide(i));
     dots.appendChild(dot);
   });
@@ -54,7 +55,7 @@ function goSlide(i) {
   const wrap = $('.slides-wrap');
   if (!wrap) return;
   wrap.style.transform = `translateX(-${i * 100}%)`;
-  $$('.dot').forEach((d, j) => d.classList.toggle('on', j === i));
+  $$('.dot').forEach((d, j) => d.classList.toggle('active', j === i));
 }
 
 function startSlider() {
