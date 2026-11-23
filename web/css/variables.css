@@ -1,0 +1,42 @@
+/* ── MyShop Design Tokens ── */
+:root {
+  /* Purple palette — from design */
+  --purple:      #5B21E6;
+  --purple-mid:  #4a17c8;
+  --purple-dark: #2d0a8f;
+  --purple-light: #7C4AF0;
+  --purple-bg:   #1C1433;
+
+  /* Gold */
+  --gold:        #F5B400;
+  --gold-light:  #FFD760;
+
+  /* Neutrals */
+  --white:       #FFFFFF;
+  --bg-card:     #FFFFFF;
+  --bg-page:     #F6F3FB;
+
+  /* Text */
+  --text-dark:   #1a0050;
+  --text-mid:    #4a3080;
+  --text-light:  #8a70c0;
+  --text-muted:  #b0a0d8;
+
+  /* Semantic */
+  --red:         #EF4444;
+  --green:       #22C55E;
+  --blue:        #3B82F6;
+  --blue-dark:   #2563EB;
+
+  /* Radius */
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  18px;
+  --r-xl:  24px;
+  --r-pill: 40px;
+
+  /* Shadows */
+  --shadow-card: 0 4px 20px rgba(91,33,230,0.12);
+  --shadow-btn:  0 4px 16px rgba(91,33,230,0.35);
+  --shadow-gold: 0 4px 20px rgba(245,180,0,0.45);
+}

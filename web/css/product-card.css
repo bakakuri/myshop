@@ -1,0 +1,79 @@
+/* ── Product Card — white bg, exact from design ── */
+.p-card {
+  background: var(--white); border-radius: var(--r-lg); overflow: hidden;
+  cursor: pointer; transition: transform .2s;
+  box-shadow: var(--shadow-card);
+}
+.p-card:hover { transform: translateY(-2px); }
+
+.p-card-img {
+  position: relative; background: #f8f5ff;
+  display: flex; align-items: center; justify-content: center;
+  height: 148px; overflow: hidden;
+}
+.p-card-img-inner { font-size: 68px; line-height: 1; }
+
+/* Discount badge — top-left */
+.p-disc {
+  position: absolute; top: 8px; left: 8px;
+  background: var(--red); color: #fff;
+  font-size: 11px; font-weight: 800;
+  padding: 3px 8px; border-radius: 6px;
+}
+/* Heart — top-right */
+.p-fav {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(255,255,255,0.9); border-radius: 50%;
+  width: 30px; height: 30px; display: flex; align-items: center;
+  justify-content: center; font-size: 15px; transition: all .2s;
+}
+.p-fav.on { color: var(--red); }
+
+.p-info     { padding: 10px 10px 12px; }
+.p-name     {
+  font-size: 13px; font-weight: 800; color: var(--text-dark); margin-bottom: 2px;
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+}
+.p-var      { font-size: 11px; color: var(--text-mid); margin-bottom: 6px; }
+.p-stars    { color: var(--gold); font-size: 11px; letter-spacing: -1px; }
+.p-reviews  { font-size: 10px; color: var(--text-mid); margin-left: 3px; }
+.p-rating-row { display: flex; align-items: center; margin-bottom: 8px; }
+.p-price-row  { display: flex; align-items: center; justify-content: space-between; }
+.p-price      { font-size: 16px; font-weight: 900; color: var(--text-dark); }
+.p-old        { font-size: 11px; color: var(--text-light); text-decoration: line-through; margin-left: 3px; }
+.p-add {
+  background: var(--purple); color: #fff; border-radius: 8px;
+  padding: 7px 9px; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; gap: 3px; transition: all .2s;
+}
+.p-add:hover { background: var(--purple-mid); }
+.p-add.done  { background: var(--green); }
+
+/* ── Wishlist grid ── */
+.wish-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 12px 20px; }
+
+/* ── Offer card ── */
+.offer-card {
+  background: var(--white); border-radius: var(--r-lg);
+  margin: 0 12px 10px; display: flex; gap: 14px;
+  align-items: center; padding: 14px; cursor: pointer;
+  transition: transform .2s; box-shadow: var(--shadow-card);
+}
+.offer-card:hover { transform: scale(1.01); }
+.offer-emoji {
+  width: 80px; height: 80px; background: #f8f5ff;
+  border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-size: 40px; flex-shrink: 0;
+}
+.offer-info  { flex: 1; min-width: 0; }
+.offer-name  { font-size: 14px; font-weight: 800; color: var(--text-dark); margin-bottom: 2px; }
+.offer-var   { font-size: 11px; color: var(--text-mid); margin-bottom: 8px; }
+.offer-price { font-size: 18px; font-weight: 900; color: var(--text-dark); }
+.offer-old   { font-size: 12px; color: var(--text-light); text-decoration: line-through; margin-left: 6px; }
+.offer-timer { font-size: 11px; color: var(--text-mid); margin-top: 4px; }
+.offer-timer .t { color: var(--purple); font-weight: 800; }
+.offer-pct   {
+  background: var(--red); color: #fff; padding: 4px 10px;
+  border-radius: 8px; font-size: 12px; font-weight: 800;
+  flex-shrink: 0; align-self: flex-start;
+}

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#5B21E6">
+<title>MyShop - ონლაინ მაღაზია</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/header.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/product-card.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/modals.css">
+</head>
+<body>
+
+<!-- ══ SIDE MENU OVERLAY ══════════════════════════════════════ -->
+<div class="side-overlay"></div>
+
+<!-- ══ SIDE MENU ═════════════════════════════════════════════ -->
+<nav class="side-menu">
+  <div class="side-hdr">
+    <div class="side-logo">MyShop</div>
+    <button class="side-close">✕</button>
+  </div>
+  <div class="side-user">
+    <div class="side-av">გ</div>
+    <div>
+      <div class="side-uname">გიორგი</div>
+      <div class="side-uemail">giorgi@example.com</div>
+    </div>
+  </div>
+  <div class="side-links">
+    <button class="side-link" data-page="home">🏠 მთავარი</button>
+    <button class="side-link" data-page="search">🔍 კატეგორიები</button>
+    <button class="side-link" data-page="cart">🛒 კალათა</button>
+    <button class="side-link" data-page="chat">💬 მხარდაჭერა</button>
+    <button class="side-link" data-page="profile">👤 პროფილი</button>
+  </div>
+  <div class="side-promo">
+    <div class="side-promo-title">📦 უფასო მიწოდება</div>
+    <div class="side-promo-sub">299₾-ზე მეტ შეკვეთაზე</div>
+  </div>
+</nav>
+
+<!-- ══ APP SHELL ══════════════════════════════════════════════ -->
+<div class="app">
+
+  <!-- ── HEADER ─────────────────────────────────────────────── -->
+  <header class="app-header">
+    <div class="hdr-top">
+      <button class="burger-btn">☰</button>
+      <div class="hdr-logo">MyShop</div>
+      <button class="bell-btn">🔔<span class="bell-dot"></span></button>
+    </div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input id="hdr-search" type="search" placeholder="მოძებნე პროდუქტი...">
+      <button class="search-filter-btn">⚙️</button>
+    </div>
+  </header>
+
+  <!-- ── PAGES ──────────────────────────────────────────────── -->
+  <main class="pages">
+
+    <!-- HOME ─────────────────────────────────────── -->
+    <section id="pg-home" class="page">
+      <!-- Slider -->
+      <div class="slider-wrap">
+        <div class="slides-wrap"></div>
+        <div class="slide-dots"></div>
+      </div>
+
+      <!-- Section: Categories -->
+      <div class="section-hdr">
+        <span>კატეგორიები</span>
+        <button class="see-all" data-page="search">ყველა →</button>
+      </div>
+      <div class="cat-row"></div>
+
+      <!-- Feature banners -->
+      <div class="feat-grid"></div>
+
+      <!-- Section: Products -->
+      <div class="section-hdr">
+        <span>პოპულარული</span>
+        <button class="see-all" data-page="search">ყველა →</button>
+      </div>
+      <div class="prods-grid"></div>
+
+      <div style="height:16px"></div>
+    </section>
+
+    <!-- SEARCH / CATEGORIES ───────────────────────── -->
+    <section id="pg-search" class="page">
+      <div class="search-pg-wrap">
+        <div class="search-big">
+          <span>🔍</span>
+          <input id="search-inp" type="search" placeholder="მოძებნე...">
+        </div>
+        <!-- Category chips -->
+        <div class="search-chips"></div>
+        <!-- Sort -->
+        <div class="sort-row">
+          <button class="sort-b active" data-sort="popular">🔥 პოპულარული</button>
+          <button class="sort-b" data-sort="price-asc">↑ ფასი</button>
+          <button class="sort-b" data-sort="price-desc">↓ ფასი</button>
+          <button class="sort-b" data-sort="rating">⭐ შეფასება</button>
+          <button class="sort-b" data-sort="discount">🏷️ ფასდაკლება</button>
+        </div>
+        <div class="res-cnt">ნაპოვნია: <span>0</span> პროდუქტი</div>
+      </div>
+      <div class="prods-grid search-prods-grid" style="padding:0 12px"></div>
+      <div style="height:16px"></div>
+    </section>
+
+    <!-- CART ─────────────────────────────────────── -->
+    <section id="pg-cart" class="page">
+      <div class="section-hdr" style="margin:12px 12px 10px">
+        <span>🛒 კალათა</span>
+      </div>
+      <div class="cart-list"></div>
+
+      <!-- Cart summary -->
+      <div class="cart-summary">
+        <div class="cs-title">შეჯამება</div>
+        <!-- Coupon -->
+        <div class="coupon-row">
+          <input class="coupon-inp" type="text" placeholder="კუპონის კოდი...">
+          <button class="coupon-apply">გამოყენება</button>
+        </div>
+        <div class="cs-row"><span>სუბ-ჯამი</span><span class="val sub-val">0₾</span></div>
+        <div class="cs-row"><span>მიწოდება</span><span class="val del-val">10₾</span></div>
+        <div class="cs-row total"><span>სულ</span><span class="val total-val">0₾</span></div>
+        <button class="checkout-cta">💳 შეძენა</button>
+      </div>
+      <div style="height:16px"></div>
+    </section>
+
+    <!-- CHAT ─────────────────────────────────────── -->
+    <section id="pg-chat" class="page">
+      <div class="section-hdr" style="padding:12px 12px 8px">
+        <span>💬 ონლაინ ჩათი</span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.75)">● ონლაინ</span>
+      </div>
+      <div class="chat-quick"></div>
+      <div class="chat-wrap">
+        <div class="chat-msgs" id="chat-msgs"></div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-inp" placeholder="შეტყობინება..." rows="1"></textarea>
+          <button class="chat-send">➤</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE ──────────────────────────────────── -->
+    <section id="pg-profile" class="page">
+      <div class="profile-hero">
+        <div class="p-avatar">გ</div>
+        <div class="p-pname">გიორგი</div>
+        <div class="p-email">giorgi@example.com</div>
+        <div class="p-stats">
+          <div class="p-stat"><div class="p-stat-num">0</div><div class="p-stat-lbl">შეკვეთა</div></div>
+          <div class="p-stat"><div class="p-stat-num">0</div><div class="p-stat-lbl">სიაში</div></div>
+          <div class="p-stat"><div class="p-stat-num">0</div><div class="p-stat-lbl">შეფასება</div></div>
+        </div>
+      </div>
+      <div class="p-menu" style="margin-top:-32px">
+        <div class="p-menu-item" data-action="orders">
+          <div class="p-menu-icon" style="background:#EDE9FE">📦</div>
+          <div class="p-menu-text"><div class="t">ჩემი შეკვეთები</div><div class="s">12 შეკვეთა</div></div>
+          <div class="p-menu-arr">›</div>
+        </div>
+        <div class="p-menu-item" data-action="wishlist">
+          <div class="p-menu-icon" style="background:#FEE2E2">❤️</div>
+          <div class="p-menu-text"><div class="t">სასურველი სია</div><div class="s">0 პროდუქტი</div></div>
+          <div class="p-menu-arr">›</div>
+        </div>
+        <div class="p-menu-item" data-action="notifications">
+          <div class="p-menu-icon" style="background:#FEF3C7">🔔</div>
+          <div class="p-menu-text"><div class="t">შეტყობინებები</div><div class="s">ჩართულია</div></div>
+          <div class="p-menu-arr">›</div>
+        </div>
+        <div class="p-menu-item" data-action="settings">
+          <div class="p-menu-icon" style="background:#F0FDF4">⚙️</div>
+          <div class="p-menu-text"><div class="t">პარამეტრები</div><div class="s">ანგარიში, უსაფრთხოება</div></div>
+          <div class="p-menu-arr">›</div>
+        </div>
+        <div class="p-menu-item" data-action="help">
+          <div class="p-menu-icon" style="background:#EFF6FF">💬</div>
+          <div class="p-menu-text"><div class="t">დახმარება</div><div class="s">24/7 მხარდაჭერა</div></div>
+          <div class="p-menu-arr">›</div>
+        </div>
+        <!-- Wishlist section -->
+        <div class="section-hdr wishlist-section" style="margin:16px 0 10px">
+          <span>❤️ სასურველი სია</span>
+        </div>
+        <div class="prods-grid wishlist-grid" style="padding:0"></div>
+      </div>
+      <div style="height:16px"></div>
+    </section>
+
+  </main>
+
+  <!-- ── BOTTOM NAV ─────────────────────────────────────────── -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-page="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">მთავარი</span>
+    </button>
+    <button class="nav-btn" data-page="search">
+      <span class="nav-icon">🔍</span>
+      <span class="nav-label">კატეგორიები</span>
+    </button>
+    <button class="nav-btn" data-page="cart">
+      <span class="nav-icon">🛒<span class="cart-badge" style="display:none">0</span></span>
+      <span class="nav-label">კალათა</span>
+    </button>
+    <button class="nav-btn" data-page="chat">
+      <span class="nav-icon">💬</span>
+      <span class="nav-label">ჩათი</span>
+    </button>
+    <button class="nav-btn" data-page="profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">პროფილი</span>
+    </button>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- ══ PRODUCT MODAL ══════════════════════════════════════════ -->
+<div id="modal-bg" class="modal-bg">
+  <div class="modal-sheet">
+    <div class="modal-drag"></div>
+    <div class="modal-hdr">
+      <h3>პროდუქტი</h3>
+      <button class="modal-x">✕</button>
+    </div>
+    <div class="modal-img-box">📱</div>
+    <div class="modal-body">
+      <div class="modal-name">Samsung Galaxy</div>
+      <div class="modal-var">256GB / Black</div>
+      <div class="modal-rating-row">
+        <span class="modal-stars">★★★★★</span>
+        <span class="modal-rnum">4.8</span>
+        <span class="modal-rcnt">(1,247 შეფასება)</span>
+      </div>
+      <div class="modal-price-row">
+        <span class="modal-price">3,299₾</span>
+        <span class="modal-old">3,799₾</span>
+        <span class="modal-disc">-13%</span>
+      </div>
+      <p class="modal-desc">პროდუქტის აღწერა...</p>
+      <div class="modal-tags"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-fav-btn">🤍</button>
+      <button class="modal-cart-btn">🛒 კალათაში დამატება</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CHECKOUT MODAL ═════════════════════════════════════════ -->
+<div class="checkout-modal">
+  <div class="checkout-box">
+    <h2>🛒 შეკვეთის გაფორმება</h2>
+    <div class="form-sec">
+      <div class="form-sec-title">პირადი ინფო</div>
+      <div class="form-g"><label class="form-lbl">სახელი და გვარი</label><input class="form-inp f-name" placeholder="გიორგი ბაკაკური"></div>
+      <div class="form-g"><label class="form-lbl">ტელეფონი</label><input class="form-inp f-phone" type="tel" placeholder="+995 5XX XXX XXX"></div>
+      <div class="form-g"><label class="form-lbl">ელ-ფოსტა</label><input class="form-inp f-email" type="email" placeholder="giorgi@email.com"></div>
+    </div>
+    <div class="form-sec">
+      <div class="form-sec-title">მიწოდების მისამართი</div>
+      <div class="form-g"><label class="form-lbl">ქალაქი</label>
+        <select class="form-sel f-city">
+          <option>თბილისი</option><option>ბათუმი</option><option>ქუთაისი</option>
+          <option>რუსთავი</option><option>გორი</option><option>სხვა</option>
+        </select></div>
+      <div class="form-g"><label class="form-lbl">მისამართი</label><input class="form-inp f-addr" placeholder="ქ.ჩ. სახელი, N..."></div>
+    </div>
+    <div class="form-sec">
+      <div class="form-sec-title">გადახდის მეთოდი</div>
+      <div class="radio-g">
+        <div class="radio-opt sel">
+          <div class="radio-dot"></div>
+          <div><div class="radio-label">💳 ბარათით ონლაინ</div><div class="radio-sub">Visa / MasterCard / AMEX</div></div>
+        </div>
+        <div class="radio-opt">
+          <div class="radio-dot"></div>
+          <div><div class="radio-label">💵 ნაღდი ფული</div><div class="radio-sub">კურიერის ჩამოსვლისას</div></div>
+        </div>
+        <div class="radio-opt">
+          <div class="radio-dot"></div>
+          <div><div class="radio-label">📱 მობაილ გადახდა</div><div class="radio-sub">TBC Pay / BOG Pay</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="checkout-actions">
+      <button class="c-cancel">გაუქმება</button>
+      <button class="c-confirm">✅ შეკვეთის დადასტურება</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FILTER SHEET ═══════════════════════════════════════════ -->
+<div class="filter-sheet">
+  <div class="filter-bg"></div>
+  <div class="filter-box">
+    <h3>🎛️ ფილტრი</h3>
+    <div class="filter-sec">
+      <h4>ფასის დიაპაზონი (₾)</h4>
+      <div class="price-row">
+        <input class="price-inp f-min" type="number" placeholder="0">
+        <span class="price-sep">—</span>
+        <input class="price-inp f-max" type="number" placeholder="10000">
+      </div>
+    </div>
+    <div class="filter-sec">
+      <h4>ბრენდი</h4>
+      <div class="f-chips">
+        <button class="f-chip">Apple</button>
+        <button class="f-chip">Samsung</button>
+        <button class="f-chip">Sony</button>
+        <button class="f-chip">Nike</button>
+        <button class="f-chip">Adidas</button>
+        <button class="f-chip">Dell</button>
+      </div>
+    </div>
+    <div class="filter-sec">
+      <h4>სხვა</h4>
+      <div class="f-checks">
+        <div class="f-check"><div class="f-cb"></div><span class="f-lbl">ფასდაკლება</span><span class="f-cnt">8</span></div>
+        <div class="f-check"><div class="f-cb"></div><span class="f-lbl">მარაგშია</span><span class="f-cnt">10</span></div>
+        <div class="f-check"><div class="f-cb"></div><span class="f-lbl">უფასო მიწოდება</span><span class="f-cnt">10</span></div>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <button class="f-reset">გასუფთავება</button>
+      <button class="f-apply">✓ გამოყენება</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUCCESS SCREEN ═════════════════════════════════════════ -->
+<div class="success-screen">
+  <div class="success-icon">🎉</div>
+  <div class="success-title">შეკვეთა დადასტურდა!</div>
+  <div class="success-sub">გმადლობ შეძენისთვის!<br>მოკლე ხანში გამოვაგზავნით.</div>
+  <div class="success-num">შეკვეთა #MS000000</div>
+  <button class="checkout-cta" style="max-width:280px">🏠 მთავარ გვერდზე</button>
+</div>
+
+<!-- ══ NOTIFICATION POPUP ════════════════════════════════════ -->
+<div class="notif-popup" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:1500;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(91,33,230,0.2);max-width:380px;width:calc(100% - 24px);align-items:center;gap:12px">
+  <span style="font-size:28px">🎁</span>
+  <div style="flex:1">
+    <div style="font-size:14px;font-weight:800;color:#1a0050">Flash Sale დაიწყო!</div>
+    <div style="font-size:12px;color:#8a70c0;margin-top:2px">სმართფონებზე 50%-მდე ფასდაკლება</div>
+  </div>
+  <button class="notif-close" style="color:#ccc;font-size:18px;flex-shrink:0">✕</button>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
